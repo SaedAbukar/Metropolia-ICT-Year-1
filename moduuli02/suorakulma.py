@@ -13,5 +13,4 @@ while True:
 suorakulmion_piiri = suorakulmion_kanta * 2 + suorakulmion_korkeus * 2
 suorakulmion_pinta_ala = suorakulmion_kanta * suorakulmion_korkeus
 
-# Muutan stringiksi, jotta voin yhdistää stringit toisiinsa.
 print(f'Suorakulmion piiri on: {suorakulmion_piiri} cm ja Suorakulmion pinta-ala on: {suorakulmion_pinta_ala} cm^2')
