@@ -27,7 +27,7 @@ luoti_massa = luoti * luoti_to_gram * gram_to_kg
 kg = leiviska_massa + naula_massa + luoti_massa
 g = (kg - int(kg)) * 1000
 
-print(f'Massa nykymittojen mukaan:\n {int(kg)} kilogrammaa ja {g:.2f}')
+print(f'Massa nykymittojen mukaan:\n {int(kg)} kilogrammaa ja {g:.2f} grammaa')
 
 
 
