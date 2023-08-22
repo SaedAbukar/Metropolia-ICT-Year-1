@@ -4,8 +4,8 @@
 # Oikean vastauksen jälkeen break outtaan while loopista.
 while True:
       try:
-            suorakulmion_kanta = int(input('Mikä on suorakulmion kanta?: '))
-            suorakulmion_korkeus = int(input('Mikä on suorakulmion korkeus?: '))
+            suorakulmion_kanta = float(input('Mikä on suorakulmion kanta?: '))
+            suorakulmion_korkeus = float(input('Mikä on suorakulmion korkeus?: '))
             break
       except ValueError:
             print('Et lisännyt lukua. Yritä uudelleen ja lisää jokaiseen kohtaan luku!')
@@ -13,4 +13,4 @@ while True:
 suorakulmion_piiri = suorakulmion_kanta * 2 + suorakulmion_korkeus * 2
 suorakulmion_pinta_ala = suorakulmion_kanta * suorakulmion_korkeus
 
-print(f'Suorakulmion piiri on: {suorakulmion_piiri} cm ja Suorakulmion pinta-ala on: {suorakulmion_pinta_ala} cm^2')
+print(f'Suorakulmion piiri on: {suorakulmion_piiri:.2f} cm ja Suorakulmion pinta-ala on: {suorakulmion_pinta_ala:.2f} cm^2')
