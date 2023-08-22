@@ -9,6 +9,6 @@ while True:
 if kuhan_mitta < 37:
     ali_jäämä = 37 - kuhan_mitta
     print(f'Kuha on alamittainen. Alimmasta sallitusta pyyntimitasta puuttuu {ali_jäämä:.2f} cm')
-    print('Päästä kuha takaisin veteen.')
+    print('Laske kuha takaisin järveen.')
 else:
     print('Hei, hieno pyydös!')
