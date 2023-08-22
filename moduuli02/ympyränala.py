@@ -16,6 +16,4 @@ while True:
 # Google myös kertoi, että math.pi löytyy math librarysta
 ympyran_pinta_ala = math.pi * r
 
-# Muutan ympyran_pinta_alan stringiksi, jotta voin yhdistää sen toiseen stringiin
-#
 print(f'Ympyrän pinta-ala on: {ympyran_pinta_ala:.2f} cm^2')
