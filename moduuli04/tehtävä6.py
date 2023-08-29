@@ -36,18 +36,3 @@ for _ in range(N):
 # Lasketaan pii:n likiarvo
 estimated_pi = 4 * n / N
 print(f'Piin likiarvo: {estimated_pi}')
-
-
-
-
-
-
-
-
-
-
-# N = int(input('Lisää arvottavien pisteiden määrä: '))
-# n = math.pi * N / 4
-# print(n)
-# piin_likiarvo = 4 * n * N
-# print(f'Piin likiarvo on: {piin_likiarvo}')
