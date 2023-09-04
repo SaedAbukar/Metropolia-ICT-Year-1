@@ -3,18 +3,21 @@
 # Pääohjelma kysyy käyttäjältä kahden pizzan halkaisijat ja hinnat sekä ilmoittaa,
 # kumpi pizza antaa paremman vastineen rahalle (eli kummalla on alhaisempi yksikköhinta).
 # Yksikköhintojen laskennassa on hyödynnettävä kirjoitettua funktiota.
+import math
 
 
 def pizza_value(diameter, euros):
-    unit_price = euros / (diameter / 100)
+    r = diameter / 2
+    area = math.pi * (r**2)
+    unit_price = euros / area
     return unit_price
 
 
 p1 = float(input('Syötä pizzan halkaisija senttimetreinä: '))
 p1_price = float(input('Syötä pizzan hinta euroina: '))
 
-p2 = float(input('Syötä pizzan halkaisija senttimetreinä: '))
-p2_price = float(input('Syötä pizzan hinta euroina: '))
+p2 = float(input('Syötä toisen pizzan halkaisija senttimetreinä: '))
+p2_price = float(input('Syötä toisen pizzan hinta euroina: '))
 
 p1_unit_price = pizza_value(p1, p1_price)
 p2_unit_price = pizza_value(p2, p2_price)
