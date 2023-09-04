@@ -16,9 +16,8 @@ if num <= 1:
 elif num > 1:
     for i in range(2, int(math.floor(math.sqrt(num)))):
         if num % i == 0:
-            num2 = num // i
             print(f'{num} ei ole alkuluku!')
-            print(f'{i} kertaa {num2} on {num}')
+            print(f'{i} kertaa {num// i} on {num}')
             break
     else:
         print(f"{num} on alkuluku.")
