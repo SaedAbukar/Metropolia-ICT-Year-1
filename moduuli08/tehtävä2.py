@@ -10,7 +10,6 @@ def search_airport(ident):
     WHERE iso_country = %s 
     GROUP BY type ORDER BY COUNT(*) DESC;
     '''
-    # print(sql)
     cursor = connection.cursor()
     cursor.execute(sql, (ident,))
     result = cursor.fetchall()
@@ -31,12 +30,3 @@ connection = mysql.connector.connect(
 
 countrycode = input('Enter country code(FI, US, GB etc): ')
 search_airport(countrycode)
-
-
-
-
-
-# SELECT airport.type, COUNT(*)
-# FROM airport, country
-# WHERE airport.iso_country = country.iso_country AND country.iso_country = 'FI'
-# GROUP BY airport.type ORDER BY COUNT(*) DESC;
