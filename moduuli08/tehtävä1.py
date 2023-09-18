@@ -1,4 +1,3 @@
-
 # Write a program that prompts the user for the airport's ICAO code.
 # The program searches for and prints the name of the airport corresponding
 # to the code and its location from the airport database used in the course.
