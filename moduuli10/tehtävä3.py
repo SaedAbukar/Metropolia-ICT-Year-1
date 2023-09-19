@@ -3,11 +3,11 @@
 # Continue the main program so that a fire alarm goes off in your house.
 class Elevator:
 
-    def __init__(self, lowest_floor, highest_floor, number_of_elevator):
+    def __init__(self, lowest_floor, highest_floor, elevator_number):
         self.current_floor = lowest_floor
         self.lowest_floor = lowest_floor
         self.highest_floor = highest_floor
-        self.number_of_elevator = number_of_elevator
+        self.elevator_number = elevator_number
 
     # Method to move the elevator up one floor
     def floor_up(self):
@@ -46,8 +46,11 @@ class House:
             print(f'Elevator {elevator_number} doesnt exist')
 
     def fire_alarm(self):
-        self.current_floor = self.lowest_floor
         print(f'Fire alarm went off. All elevators were commanded to the ground floor.')
+        for elevator in self.elevators:
+            elevator.current_floor = self.lowest_floor
+            print(f'The elevator is now in floor {elevator.current_floor}')
+
 
 
 elevator1 = Elevator(0, 10, 1)
@@ -56,5 +59,5 @@ elevator3 = Elevator(0, 10, 3)
 
 house1 = House(0, 10, 3)
 house1.elevators.extend([elevator1, elevator2, elevator3])
-house1.run_elevator(2, 7)
+house1.run_elevator(1, 7)
 house1.fire_alarm()
