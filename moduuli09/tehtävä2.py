@@ -32,19 +32,3 @@ print(f'The new cars current speed is {new_car.current_speed}.')
 
 new_car.accelerate(-200)
 print(f'The new car performed an emergency break. The new cars current speed is {new_car.current_speed}.')
-
-
-
-
-
-# new_car30 = new_car.accelerate(30)
-# print(f'The speed is {new_car30}')
-#
-# new_car70 = new_car30 + new_car.accelerate(70)
-# print(f'The speed is {new_car70}')
-#
-# new_car50 = new_car70 + new_car.accelerate(50)
-# print(f'The speed is {new_car50}')
-#
-# new_car_neg200 = new_car70 + new_car.accelerate(-200)
-# print(f'{new_car_neg200}')
