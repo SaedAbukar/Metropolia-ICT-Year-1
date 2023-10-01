@@ -166,7 +166,7 @@ def penalty_shootout(team):
     print("|       |       |")
     print("|      / \      |")
 
-    number_of_rounds = 1
+    number_of_rounds = 3
     team1 = 'Suomi'
     team2 = team
     game_continues = True
@@ -178,7 +178,7 @@ def penalty_shootout(team):
     rounds = 0
 
     while game_continues:
-        if abs(team1_score - team2_score) > (number_of_rounds - rounds):
+        if abs(team1_score - team2_score) > (number_of_rounds - rounds) and team1_turn == team2_turn:
             game_continues = False
         else:
             if team1_turn == team2_turn:
@@ -194,12 +194,21 @@ def penalty_shootout(team):
                 print(f"Nyt on {current_team} joukkueen vuoro")
                 team1_turn += 1
 
-            kick = int(input(f"Kumpaan suuntaan pelaaja vetää?? (1: vasemmalle/2: oikealle)\n"))
-            while kick != 1 and kick != 2:
-                print(f'Syötä 1 tai 2')
-                kick = int(input(f"Kumpaan suuntaan pelaaja vetää? (1: vasemmalle/2: oikealle)\n"))
+            if current_team == team1:
+                kick = int(input(f"Kumpaan suuntaan pelaaja vetää?? (1: vasemmalle/2: oikealle)\n"))
+                while kick != 1 and kick != 2:
+                    print(f'Syötä 1 tai 2')
+                    kick = int(input(f"Kumpaan suuntaan pelaaja vetää? (1: vasemmalle/2: oikealle)\n"))
+            else:
+                kick = random.randint(1, 2)
 
-            dive_direction = dive()
+            if current_team == team2:
+                dive_direction = int(input(f"Minne maalivahti hyppää? (1: vasemmalle/2: oikealle)\n"))
+                while dive_direction != 1 and dive_direction != 2:
+                    print(f'Syötä 1 tai 2')
+                    dive_direction = int(input(f"Minne maalivahti hyppää? (1: vasemmalle/2: oikealle)\n"))
+            else:
+                dive_direction = dive()
 
             if goal(kick, dive_direction):
                 print(f'Veto: {kick} Torjunta: {dive_direction}')
@@ -221,6 +230,10 @@ def penalty_shootout(team):
                 print(f"Ja maalivahti menee...")
                 print_goalkeeper(dive_direction)
                 print(f'Ei maalia. Maalivahti torjui vedon!')
+
+            if rounds >= number_of_rounds and team1_score == team2_score and team1_turn == team2_turn:
+                print("Tasapeli! Siirrytään äkkikuolema -kierroksiin!")
+                number_of_rounds += 1  # Add one more round for sudden death
 
     print(f'{team1} yritykset: {team1_turn}')
     print(f'{team2} yritykset: {team2_turn}')
