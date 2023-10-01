@@ -166,7 +166,7 @@ def penalty_shootout(team):
     print("|       |       |")
     print("|      / \      |")
 
-    number_of_rounds = 3
+    number_of_rounds = 5
     team1 = 'Suomi'
     team2 = team
     game_continues = True
@@ -233,7 +233,7 @@ def penalty_shootout(team):
 
             if rounds >= number_of_rounds and team1_score == team2_score and team1_turn == team2_turn:
                 print("Tasapeli! Siirrytään äkkikuolema -kierroksiin!")
-                number_of_rounds += 1  # Add one more round for sudden death
+                number_of_rounds += 1 
 
     print(f'{team1} yritykset: {team1_turn}')
     print(f'{team2} yritykset: {team2_turn}')
