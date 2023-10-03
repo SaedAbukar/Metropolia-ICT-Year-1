@@ -159,7 +159,7 @@ def penalty_shootout(team):
     print("|       |       |")
     print("|      / \      |")
 
-    number_of_rounds = 5
+    number_of_rounds = 1
     team1 = 'Suomi'
     team2 = team
     game_continues = True
@@ -245,13 +245,7 @@ def penalty_shootout(team):
 # game loop
 def main():
     visited_fields = []
-
-    lohkopelit = 3
-    pudotuspelit = 1
-
     lohkopeli_voitot = 0
-    pudotuspeli_voitot = 0
-
     storyDialog = input('Haluatko lukea pelin tarinan? (K/E): ').lower()
     if storyDialog == 'k':
         for line in story.get_story():
@@ -294,7 +288,6 @@ def main():
         # get current airport info
         airport = get_field_info(current_field)
         print(f"Saavuit jalkapallokentälle: {airport['name']}.")
-        print(f"Olet pelannut {played} ottelua ja voittanut {score}.")
         input('\033[32mPaina Enteriä selvittääksesi onko kentällä vastustaja...\033[0m')
         # if airport has an opponent the player plays them
         # check the goal type and add if wins
@@ -307,6 +300,7 @@ def main():
                 played += 1
                 points += goal['points']
                 player_range += 500
+                lohkopeli_voitot += 1
                 print(f"Ottelun voittaja on {winning_team}!")
             else:
                 print(f'Peli päättyi. Hävisit ottelun. Onnea seuraavaan koitokseen!')
@@ -314,56 +308,125 @@ def main():
 
         else:
             print(f'Tällä kentällä ei ole vastustajaa. Siirry seuraavalle kentälle')
-        if lohkopeli_voitot >= 2:
+
+        if played >= 3 and lohkopeli_voitot >= 2:
             print(f'Onnittelut! Selvisit pudotuspelikierrokselle!')
-            goal = check_goal(game_id, current_field)
-            if goal:
-                print('Tällä kentällä on vastustaja. Valmistaudu!')
-                winning_team = penalty_shootout(goal['name'])
-                if winning_team == 'Suomi':
-                    score += 1
-                    played += 1
-                    points += goal['points']
-                    player_range += 500
-                    print(f"Ottelun voittaja on {winning_team}!")
+            fields = fields_in_range(current_field, all_fields, player_range)
+            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}')
+            print('Jalkapallokentät:')
+            for field in fields:
+                f_distance = calculate_distance(current_field, field['ident'])
+                print(
+                    f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")  # MIKÄLI ICAO KOODI ON LISTAA ÄLÄ NÄYTÄ
+                # NÄYTÄ VÄRILLÄ MISSÄ KÄYNYT JA TULOKSET
+
+            try:
+                dest = input('Syötä kohdekentän ICAO: ')
+                while dest in visited_fields:
+                    print("Olet jo vieraillut tässä kentässä!")
+                    dest = input('Syötä uuden kohdekentän ICAO: ')
+
                 else:
-                    print(f'Peli päättyi. Hävisit ottelun. Onnea seuraavaan koitokseen!')
-                    played += 1
+                    selected_distance = calculate_distance(current_field, dest)
+                    update_location(dest, player_range, points, game_id)
+                    current_field = dest
+                    # Inside the loop where the player selects the destination field (after updating current_field):
+                    visited_fields.append(current_field)
+            except ValueError:
+                print(f'Virheellinen syöte. Syötä vaihtoehdoista haluamasi kohdekentän ICAO-koodi:')
+
+            i = 0
+            pudotuspeli_voitot = 0
+            pudotuspeli_häviöt = 0
+            while pudotuspeli_voitot < 4 and pudotuspeli_häviöt < 1:
+                if played == 7 and pudotuspeli_voitot >= 4 or pudotuspeli_häviöt > 0:
                     game_over = True
-        else:
+                vaiheet = ['16-parhaan joukko', '8-parhaan joukko', 'Semi-finaali', 'Finaali']
+                print(f'Pudotuspelivaihe: {vaiheet[i]}.')
+                input('\033[32mPaina Enteriä selvittääksesi onko kentällä vastustaja...\033[0m')
+                goal = check_goal(game_id, current_field)
+                if goal:
+                    print('Tällä kentällä on vastustaja. Valmistaudu!')
+                    winning_team = penalty_shootout(goal['name'])
+                    if winning_team == 'Suomi':
+                        score += 1
+                        played += 1
+                        pudotuspeli_voitot += 1
+                        points += goal['points']
+                        player_range += 500
+                        i += 1
+                        print(f"Ottelun voittaja on {winning_team}!")
+                        # Move to the next field
+                        fields = fields_in_range(current_field, all_fields, player_range)
+                        print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}')
+                        print('Jalkapallokentät:')
+                        for field in fields:
+                            f_distance = calculate_distance(current_field, field['ident'])
+                            print(
+                                f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")  # MIKÄLI ICAO KOODI ON LISTAA ÄLÄ NÄYTÄ
+                            # NÄYTÄ VÄRILLÄ MISSÄ KÄYNYT JA TULOKSET
+
+                        try:
+                            dest = input('Syötä kohdekentän ICAO: ')
+                            while dest in visited_fields:
+                                print("Olet jo vieraillut tässä kentässä!")
+                                dest = input('Syötä uuden kohdekentän ICAO: ')
+
+                            else:
+                                selected_distance = calculate_distance(current_field, dest)
+                                update_location(dest, player_range, points, game_id)
+                                current_field = dest
+                                # Inside the loop where the player selects the destination field (after updating current_field):
+                                visited_fields.append(current_field)
+                        except ValueError:
+                            print(f'Virheellinen syöte. Syötä vaihtoehdoista haluamasi kohdekentän ICAO-koodi:')
+                    else:
+                        print(f'Voi ei! Hävisit rangaistuspotkukilpailun!'
+                              f' Tällä kertaa matkasi loppui pudotuspelivaiheeseen: {vaiheet[i]}.')
+                        pudotuspeli_häviöt += 1
+                        played += 1
+                        game_over = True
+                else:
+                    print(f'Tällä kentällä ei ole vastustajaa. Siirry seuraavalle kentälle')
+
+        if played >= 3 and lohkopeli_voitot < 2:
             print(f'Valitettavasti et voittanut kahta peliä kolmesta lohkopeliotteluista.'
                   f'Sinun MM-kisa taivel päättyy tähän. Parempaa onnea seuraaviin kisoihin!')
-
-        fields = fields_in_range(current_field, all_fields, player_range)
-        print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}')
-        print('Jalkapallo Stadionit:')
-        for field in fields:
-            f_distance = calculate_distance(current_field, field['ident'])
-            print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km") # MIKÄLI ICAO KOODI ON LISTAA ÄLÄ NÄYTÄ
-            # NÄYTÄ VÄRILLÄ MISSÄ KÄYNYT JA TULOKSET
+            game_over = True
 
         if played == 7:
             game_over = True
 
-        try:
-            dest = input('Syötä kohdekentän ICAO: ')
-            while dest in visited_fields:
-                print("Olet jo vieraillut tässä kentässä!")
-                dest = input('Syötä uuden kohdekentän ICAO: ')
+        if played < 3:
+            fields = fields_in_range(current_field, all_fields, player_range)
+            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}')
+            print('Jalkapallokentät:')
+            for field in fields:
+                f_distance = calculate_distance(current_field, field['ident'])
+                print(
+                    f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")  # MIKÄLI ICAO KOODI ON LISTAA ÄLÄ NÄYTÄ
+                # NÄYTÄ VÄRILLÄ MISSÄ KÄYNYT JA TULOKSET
 
-            else:
-                selected_distance = calculate_distance(current_field, dest)
-                update_location(dest, player_range, points, game_id)
-                current_field = dest
-                # Inside the loop where the player selects the destination field (after updating current_field):
-                visited_fields.append(current_field)
-        except ValueError:
-            print(f'Virheellinen syöte. Syötä vaihtoehdoista haluamasi kohdekentän ICAO-koodi:')
+            try:
+                dest = input('Syötä kohdekentän ICAO: ')
+                while dest in visited_fields:
+                    print("Olet jo vieraillut tässä kentässä!")
+                    dest = input('Syötä uuden kohdekentän ICAO: ')
+
+                else:
+                    selected_distance = calculate_distance(current_field, dest)
+                    update_location(dest, player_range, points, game_id)
+                    current_field = dest
+                    # Inside the loop where the player selects the destination field (after updating current_field):
+                    visited_fields.append(current_field)
+            except ValueError:
+                print(f'Virheellinen syöte. Syötä vaihtoehdoista haluamasi kohdekentän ICAO-koodi:')
 
     if score == 7:
         print(f'Olet maailman mestari!')
         print(f'Pelasit kaikki ottelut ja voitit jokaisen ottelun!')
         print(f'Pelasit {played} ottelua ja voitit {score} ottelua. Sait {points} verran pisteitä!')
+        print(pudotuspeli_voitot)
     else:
         print(f'Taistelit hienosti, mutta et valitettavasti voittanut jokaista peliä.')
         print(f'Pelasit {played} ottelua ja voitit {score} ottelua. Sait {points} verran pisteitä!')
