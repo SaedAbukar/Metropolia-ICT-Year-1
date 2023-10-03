@@ -1,6 +1,7 @@
 import mysql.connector
 import random
 import story
+import colorama
 from geopy import distance
 
 conn = mysql.connector.connect(
@@ -251,8 +252,8 @@ def main():
     lohkopeli_voitot = 0
     pudotuspeli_voitot = 0
 
-    storyDialog = input('Haluatko lukea pelin tarinan? (K/E): ')
-    if storyDialog == 'K':
+    storyDialog = input('Haluatko lukea pelin tarinan? (K/E): ').lower()
+    if storyDialog == 'k':
         for line in story.get_story():
             print(line)
 
@@ -293,12 +294,28 @@ def main():
         # get current airport info
         airport = get_field_info(current_field)
         print(f"Saavuit jalkapallokentälle: {airport['name']}.")
-        print(f"Olet pelannut {played} ottelua ja voittanut {score}. "
-              f"Sinulla on {points:.0f}pistettä ja {player_range:.0f}km etäisyyttä.")
+        print(f"Olet pelannut {played} ottelua ja voittanut {score}.")
         input('\033[32mPaina Enteriä selvittääksesi onko kentällä vastustaja...\033[0m')
         # if airport has an opponent the player plays them
         # check the goal type and add if wins
-        for i in range(lohkopelit):
+        goal = check_goal(game_id, current_field)
+        if goal:
+            print('Tällä kentällä on vastustaja. Valmistaudu!')
+            winning_team = penalty_shootout(goal['name'])
+            if winning_team == 'Suomi':
+                score += 1
+                played += 1
+                points += goal['points']
+                player_range += 500
+                print(f"Ottelun voittaja on {winning_team}!")
+            else:
+                print(f'Peli päättyi. Hävisit ottelun. Onnea seuraavaan koitokseen!')
+                played += 1
+
+        else:
+            print(f'Tällä kentällä ei ole vastustajaa. Siirry seuraavalle kentälle')
+        if lohkopeli_voitot >= 2:
+            print(f'Onnittelut! Selvisit pudotuspelikierrokselle!')
             goal = check_goal(game_id, current_field)
             if goal:
                 print('Tällä kentällä on vastustaja. Valmistaudu!')
@@ -312,26 +329,7 @@ def main():
                 else:
                     print(f'Peli päättyi. Hävisit ottelun. Onnea seuraavaan koitokseen!')
                     played += 1
-
-            else:
-                print(f'Tällä kentällä ei ole vastustajaa. Siirry seuraavalle kentälle')
-        if lohkopeli_voitot >= 2:
-            print(f'Onnittelut! Selvisit pudotuspelikierrokselle!')
-            for i in range(pudotuspelit):
-                goal = check_goal(game_id, current_field)
-                if goal:
-                    print('Tällä kentällä on vastustaja. Valmistaudu!')
-                    winning_team = penalty_shootout(goal['name'])
-                    if winning_team == 'Suomi':
-                        score += 1
-                        played += 1
-                        points += goal['points']
-                        player_range += 500
-                        print(f"Ottelun voittaja on {winning_team}!")
-                    else:
-                        print(f'Peli päättyi. Hävisit ottelun. Onnea seuraavaan koitokseen!')
-                        played += 1
-                        game_over = True
+                    game_over = True
         else:
             print(f'Valitettavasti et voittanut kahta peliä kolmesta lohkopeliotteluista.'
                   f'Sinun MM-kisa taivel päättyy tähän. Parempaa onnea seuraaviin kisoihin!')
@@ -341,7 +339,8 @@ def main():
         print('Jalkapallo Stadionit:')
         for field in fields:
             f_distance = calculate_distance(current_field, field['ident'])
-            print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
+            print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km") # MIKÄLI ICAO KOODI ON LISTAA ÄLÄ NÄYTÄ
+            # NÄYTÄ VÄRILLÄ MISSÄ KÄYNYT JA TULOKSET
 
         if played == 7:
             game_over = True
