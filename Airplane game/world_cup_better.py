@@ -244,6 +244,7 @@ def penalty_shootout(team):
 
 # game loop
 def main():
+    visited_fields = []
     storyDialog = input('Haluatko lukea pelin tarinan? (K/E): ')
     if storyDialog == 'K':
         for line in story.get_story():
@@ -289,8 +290,6 @@ def main():
         print(f"Olet pelannut {played} ottelua ja voittanut {score}. "
               f"Sinulla on {points:.0f}pistettä ja {player_range:.0f}km etäisyyttä.")
         input('\033[32mPaina Enteriä selvittääksesi onko kentällä vastustaja...\033[0m')
-        # if airport has an opponent the player plays them
-        # check the goal type and add if wins
         goal = check_goal(game_id, current_field)
         if goal:
             print('Tällä kentällä on vastustaja. Valmistaudu!')
@@ -309,26 +308,35 @@ def main():
 
         fields = fields_in_range(current_field, all_fields, player_range)
         print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}')
-        print('Airports:')
+        print('Jalkapallo Stadionit:')
         for field in fields:
             f_distance = calculate_distance(current_field, field['ident'])
-            print(f"{field['ident']}, icao: {field['ident']}, distance: {f_distance:.0f}km")
+            print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
 
         if played == 7:
             game_over = True
 
-        dest = input('Syötä kohdeaseman ICAO: ')
-        selected_distance = calculate_distance(current_field, dest)
-        update_location(dest, player_range, points, game_id)
-        current_field = dest
+        try:
+            dest = input('Syötä kohdekentän ICAO: ')
+            while dest in visited_fields:
+                print("Olet jo vieraillut tässä kentässä!")
+                dest = input('Syötä uuden kohdekentän ICAO: ')
+
+            else:
+                selected_distance = calculate_distance(current_field, dest)
+                update_location(dest, player_range, points, game_id)
+                current_field = dest
+                visited_fields.append(current_field)
+        except ValueError:
+            print(f'Virheellinen syöte. Syötä vaihtoehdoista haluamasi kohdekentän ICAO-koodi:')
 
     if score == 7:
         print(f'Olet maailman mestari!')
         print(f'Pelasit kaikki ottelut ja voitit jokaisen ottelun!')
-        print(f'Pelasit {played} ottelua ja voitit {score}!')
+        print(f'Pelasit {played} ottelua ja voitit {score} ottelua. Sait {points} verran pisteitä!')
     else:
         print(f'Taistelit hienosti, mutta et valitettavasti voittanut jokaista peliä.')
-        print(f'Pelasit {played} ottelua ja voitit {score}!')
+        print(f'Pelasit {played} ottelua ja voitit {score} ottelua. Sait {points} verran pisteitä!')
         print(f'Parempaa menestystä seuraavalle kerralle!')
 
 main()
