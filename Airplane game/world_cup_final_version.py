@@ -176,28 +176,27 @@ def main():
         if played >= 3 and lohkopeli_voitot >= 2:
             print(f'Onnittelut! Selvisit pudotuspelikierrokselle!')
             fields = fields_in_range(current_field, all_fields, player_range)
-            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}')
+            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}.')
             print('Jalkapallokentät:')
             for field in fields:
                 f_distance = calculate_distance(current_field, field['ident'])
-                print(
-                    f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")  # MIKÄLI ICAO KOODI ON LISTAA ÄLÄ NÄYTÄ
-                # NÄYTÄ VÄRILLÄ MISSÄ KÄYNYT JA TULOKSET
+                print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
 
-            try:
-                dest = input('Syötä kohdekentän ICAO: ')
-                while dest in visited_fields:
-                    print("Olet jo vieraillut tässä kentässä!")
-                    dest = input('Syötä uuden kohdekentän ICAO: ')
-
-                else:
-                    selected_distance = calculate_distance(current_field, dest)
-                    update_location(dest, player_range, points, game_id)
-                    current_field = dest
-                    # Inside the loop where the player selects the destination field (after updating current_field):
-                    visited_fields.append(current_field)
-            except ValueError:
-                print(f'Virheellinen syöte. Syötä vaihtoehdoista haluamasi kohdekentän ICAO-koodi:')
+            while True:
+                try:
+                    dest = input('Syötä kohdekentän ICAO: ').upper()
+                    if dest in visited_fields:
+                        print("Olet jo vieraillut tässä kentässä!")
+                    elif dest in [field['ident'] for field in fields]:
+                        selected_distance = calculate_distance(current_field, dest)
+                        update_location(dest, player_range, points, game_id)
+                        current_field = dest
+                        visited_fields.append(current_field)
+                        break  # Poistutaan silmukasta, kun käyttäjän syöte on kelvollinen
+                    else:
+                        print("Virheellinen syöte. Syötä kohdekenttä listalta.")
+                except ValueError:
+                    print("Virheellinen syöte. Syötä kohdekentän ICAO-koodi.")
 
             i = 0
             pudotuspeli_voitot = 0
@@ -225,28 +224,27 @@ def main():
                         else:
                             # Move to the next field
                             fields = fields_in_range(current_field, all_fields, player_range)
-                            print(f'Voit lentää näin monelle jalkapallokentälle. {len(fields)}')
+                            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}.')
                             print('Jalkapallokentät:')
                             for field in fields:
                                 f_distance = calculate_distance(current_field, field['ident'])
-                                print(
-                                    f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")  # MIKÄLI ICAO KOODI ON LISTAA ÄLÄ NÄYTÄ
-                                # NÄYTÄ VÄRILLÄ MISSÄ KÄYNYT JA TULOKSET
+                                print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
 
-                            try:
-                                dest = input('Syötä kohdekentän ICAO: ')
-                                while dest in visited_fields:
-                                    print("Olet jo vieraillut tässä kentässä!")
-                                    dest = input('Syötä uuden kohdekentän ICAO: ')
-
-                                else:
-                                    selected_distance = calculate_distance(current_field, dest)
-                                    update_location(dest, player_range, points, game_id)
-                                    current_field = dest
-                                    # Inside the loop where the player selects the destination field (after updating current_field):
-                                    visited_fields.append(current_field)
-                            except ValueError:
-                                print(f'Virheellinen syöte. Syötä vaihtoehdoista haluamasi kohdekentän ICAO-koodi:')
+                            while True:
+                                try:
+                                    dest = input('Syötä kohdekentän ICAO: ').upper()
+                                    if dest in visited_fields:
+                                        print("Olet jo vieraillut tässä kentässä!")
+                                    elif dest in [field['ident'] for field in fields]:
+                                        selected_distance = calculate_distance(current_field, dest)
+                                        update_location(dest, player_range, points, game_id)
+                                        current_field = dest
+                                        visited_fields.append(current_field)
+                                        break  # Poistutaan silmukasta, kun käyttäjän syöte on kelvollinen
+                                    else:
+                                        print("Virheellinen syöte. Syötä kohdekenttä listalta.")
+                                except ValueError:
+                                    print("Virheellinen syöte. Syötä kohdekentän ICAO-koodi.")
                     else:
                         print(f'Voi ei! Hävisit rangaistuspotkukilpailun!'
                               f' Tällä kertaa matkasi loppui pudotuspelivaiheeseen: {vaiheet[i]}.')
@@ -255,6 +253,28 @@ def main():
                         game_over = True
                 else:
                     print(f'Tällä kentällä ei ole vastustajaa. Siirry seuraavalle kentälle')
+                    fields = fields_in_range(current_field, all_fields, player_range)
+                    print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}.')
+                    print('Jalkapallokentät:')
+                    for field in fields:
+                        f_distance = calculate_distance(current_field, field['ident'])
+                        print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
+
+                    while True:
+                        try:
+                            dest = input('Syötä kohdekentän ICAO: ').upper()
+                            if dest in visited_fields:
+                                print("Olet jo vieraillut tässä kentässä!")
+                            elif dest in [field['ident'] for field in fields]:
+                                selected_distance = calculate_distance(current_field, dest)
+                                update_location(dest, player_range, points, game_id)
+                                current_field = dest
+                                visited_fields.append(current_field)
+                                break  # Poistutaan silmukasta, kun käyttäjän syöte on kelvollinen
+                            else:
+                                print("Virheellinen syöte. Syötä kohdekenttä listalta.")
+                        except ValueError:
+                            print("Virheellinen syöte. Syötä kohdekentän ICAO-koodi.")
 
         if played >= 3 and lohkopeli_voitot < 2:
             print(f'Valitettavasti et voittanut kahta peliä kolmesta lohkopeliotteluista.'
@@ -270,24 +290,23 @@ def main():
             print('Jalkapallokentät:')
             for field in fields:
                 f_distance = calculate_distance(current_field, field['ident'])
-                print(
-                    f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")  # MIKÄLI ICAO KOODI ON LISTAA ÄLÄ NÄYTÄ
-                # NÄYTÄ VÄRILLÄ MISSÄ KÄYNYT JA TULOKSET
+                print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
 
-            try:
-                dest = input('Syötä kohdekentän ICAO: ')
-                while dest in visited_fields:
-                    print("Olet jo vieraillut tässä kentässä!")
-                    dest = input('Syötä uuden kohdekentän ICAO: ')
-
-                else:
-                    selected_distance = calculate_distance(current_field, dest)
-                    update_location(dest, player_range, points, game_id)
-                    current_field = dest
-                    # Inside the loop where the player selects the destination field (after updating current_field):
-                    visited_fields.append(current_field)
-            except ValueError:
-                print(f'Virheellinen syöte. Syötä vaihtoehdoista haluamasi kohdekentän ICAO-koodi:')
+            while True:
+                try:
+                    dest = input('Syötä kohdekentän ICAO: ').upper()
+                    if dest in visited_fields:
+                        print("Olet jo vieraillut tässä kentässä!")
+                    elif dest in [field['ident'] for field in fields]:
+                        selected_distance = calculate_distance(current_field, dest)
+                        update_location(dest, player_range, points, game_id)
+                        current_field = dest
+                        visited_fields.append(current_field)
+                        break  # Poistutaan silmukasta, kun käyttäjän syöte on kelvollinen
+                    else:
+                        print("Virheellinen syöte. Syötä kohdekenttä listalta.")
+                except ValueError:
+                    print("Virheellinen syöte. Syötä kohdekentän ICAO-koodi.")
 
     if score == 7:
         print(f'Se oli siinä! POIKA TULI KOTIIN!!!')
@@ -303,8 +322,7 @@ def main():
 main()
 
 # TODO
-"""
-Lisää peliin virhekontrollit. 
+""" 
 Parantele pelin käyttettävyyttä yksinkertaistamalla ja selkeyttämällä python terminaalia.
 Jos ehdit lisää vinkki kysymyksiä ja muita pelejä
 """
