@@ -2,7 +2,7 @@ import mysql.connector
 import random
 import story
 from penalties import penalty_shootout
-import colorama
+from colorama import Fore, Style
 from geopy import distance
 
 conn = mysql.connector.connect(
@@ -112,10 +112,19 @@ def main():
     lohkopeli_voitot = 0
     storyDialog = input('Haluatko lukea pelin tarinan? (K/E): ').lower()
     if storyDialog == 'k':
-        for line in story.get_story():
-            print(line)
+        story.get_story()
 
-    print('Tervetuloa Yhdysvaltojen, Meksikon ja Kanadan 2026 MM-kisoihin.')
+
+    rulesDialog = input('Haluatko lukea pelin säännöt? (K/E): ').lower()
+    if rulesDialog == 'k':
+        story.get_rules()
+
+
+
+    usa = story.yhdysvallat
+    meksiko = story.meksiko
+    kanada = story.kanada
+    print(f'Tervetuloa {usa}, {meksiko} ja {kanada} 2026 MM-kisoihin.')
     player = input('Syötä pelaaja nimesi: ')
 
     # check if the game is over
@@ -158,6 +167,7 @@ def main():
         goal = check_goal(game_id, current_field)
         if goal:
             print('Tällä kentällä on vastustaja. Valmistaudu!')
+            print(f"Tämän ottelun vastustaja on {goal['name']}...")
             winning_team = penalty_shootout(goal['name'])
             if winning_team == 'Suomi':
                 score += 1
@@ -210,6 +220,7 @@ def main():
                 goal = check_goal(game_id, current_field)
                 if goal:
                     print('Tällä kentällä on vastustaja. Valmistaudu!')
+                    print(f"Tämän ottelun vastustaja on {goal['name']}...")
                     winning_team = penalty_shootout(goal['name'])
                     if winning_team == 'Suomi':
                         score += 1
@@ -319,7 +330,8 @@ def main():
         print(f'Parempaa menestystä seuraavalle kerralle!')
 
 
-main()
+if __name__ == "__main__":
+    main()
 
 # TODO
 """ 
