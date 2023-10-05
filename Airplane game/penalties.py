@@ -84,18 +84,30 @@ def penalty_shootout(team):
                 team1_turn += 1
 
             if current_team == team1:
-                kick = int(input(f"Kumpaan suuntaan pelaaja vetää?? (1: vasemmalle/2: oikealle)\n"))
-                while kick != 1 and kick != 2:
-                    print(f'Syötä 1 tai 2')
-                    kick = int(input(f"Kumpaan suuntaan pelaaja vetää? (1: vasemmalle/2: oikealle)\n"))
+                while True:
+                    try:
+                        kick = int(input(f"Kumpaan suuntaan pelaaja vetää?? (1: vasemmalle/2: oikealle)\n"))
+                        if kick == 1 or kick == 2:
+                            break
+                        else:
+                            print(f'Syötä 1 tai 2')
+                    except ValueError:
+                        print(f'Syötteen pitää olla kokonaisluku.')
+
             else:
                 kick = random.randint(1, 2)
 
             if current_team == team2:
-                dive_direction = int(input(f"Minne maalivahti hyppää? (1: vasemmalle/2: oikealle)\n"))
-                while dive_direction != 1 and dive_direction != 2:
-                    print(f'Syötä 1 tai 2')
-                    dive_direction = int(input(f"Minne maalivahti hyppää? (1: vasemmalle/2: oikealle)\n"))
+                while True:
+                    try:
+                        dive_direction = int(input(f"Minne maalivahti hyppää? (1: vasemmalle/2: oikealle)\n"))
+                        if dive_direction == 1 or dive_direction == 2:
+                            break
+                        else:
+                            print(f'Syötä 1 tai 2')
+                    except ValueError:
+                        print(f'Syötteen pitää olla kokonaisluku.')
+
             else:
                 dive_direction = dive()
 

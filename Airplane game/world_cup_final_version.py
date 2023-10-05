@@ -360,6 +360,6 @@ if __name__ == "__main__":
 
 # TODO
 """ 
-Parantele pelin käyttettävyyttä yksinkertaistamalla ja selkeyttämällä python terminaalia.
-Jos ehdit lisää vinkki kysymyksiä ja muita pelejä.
+Lisää vastustajan etsimiseen, joku idea. (CO2 päästöt?, nopeuskisa?...)
+Lisää oikoreiti (if == jotain --> pääset tiettyyn kohtaan peliä) 
 """
