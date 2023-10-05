@@ -161,7 +161,7 @@ def main():
         # get current airport info
         airport = get_field_info(current_field)
         print(f"Saavuit jalkapallokentälle: {airport['name']}.")
-        input('\033[32mPaina Enteriä selvittääksesi onko kentällä vastustaja...\033[0m')
+        input(Fore.BLUE + 'Paina Enteriä selvittääksesi onko kentällä vastustaja...' + Fore.RESET)
         # if airport has an opponent the player plays them
         # check the goal type and add if wins
         goal = check_goal(game_id, current_field)
@@ -186,11 +186,17 @@ def main():
         if played >= 3 and lohkopeli_voitot >= 2:
             print(f'Onnittelut! Selvisit pudotuspelikierrokselle!')
             fields = fields_in_range(current_field, all_fields, player_range)
-            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}.')
+            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields) - len(visited_fields)}.')
             print('Jalkapallokentät:')
             for field in fields:
-                f_distance = calculate_distance(current_field, field['ident'])
-                print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
+                if field['ident'] in visited_fields:
+                    f_distance = calculate_distance(current_field, field['ident'])
+                    # Print visited fields in red
+                    print(
+                        f"{Fore.GREEN}ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km (Vierailtu!){Fore.RESET}")
+                else:
+                    f_distance = calculate_distance(current_field, field['ident'])
+                    print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
 
             while True:
                 try:
@@ -216,7 +222,7 @@ def main():
                     game_over = True
                 vaiheet = ['16-parhaan joukko', '8-parhaan joukko', 'Semi-finaali', 'Finaali']
                 print(f'Pudotuspelivaihe: {vaiheet[i]}.')
-                input('\033[32mPaina Enteriä selvittääksesi onko kentällä vastustaja...\033[0m')
+                input(Fore.BLUE + 'Paina Enteriä selvittääksesi onko kentällä vastustaja...' + Fore.RESET)
                 goal = check_goal(game_id, current_field)
                 if goal:
                     print('Tällä kentällä on vastustaja. Valmistaudu!')
@@ -235,17 +241,24 @@ def main():
                         else:
                             # Move to the next field
                             fields = fields_in_range(current_field, all_fields, player_range)
-                            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}.')
+                            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields) - len(visited_fields)}.')
                             print('Jalkapallokentät:')
                             for field in fields:
-                                f_distance = calculate_distance(current_field, field['ident'])
-                                print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
+                                if field['ident'] in visited_fields:
+                                    f_distance = calculate_distance(current_field, field['ident'])
+                                    # Print visited fields in red
+                                    print(
+                                        f"{Fore.GREEN}ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km (Vierailtu!){Fore.RESET}")
+                                else:
+                                    f_distance = calculate_distance(current_field, field['ident'])
+                                    print(
+                                        f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
 
                             while True:
                                 try:
                                     dest = input('Syötä kohdekentän ICAO: ').upper()
                                     if dest in visited_fields:
-                                        print("Olet jo vieraillut tässä kentässä!")
+                                        print(Fore.RED + "Olet jo vieraillut tässä kentässä!" + Fore.RESET)
                                     elif dest in [field['ident'] for field in fields]:
                                         selected_distance = calculate_distance(current_field, dest)
                                         update_location(dest, player_range, points, game_id)
@@ -265,17 +278,23 @@ def main():
                 else:
                     print(f'Tällä kentällä ei ole vastustajaa. Siirry seuraavalle kentälle')
                     fields = fields_in_range(current_field, all_fields, player_range)
-                    print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}.')
+                    print(f'Voit lentää näin monelle jalkapallokentälle {len(fields) - len(visited_fields)}.')
                     print('Jalkapallokentät:')
                     for field in fields:
-                        f_distance = calculate_distance(current_field, field['ident'])
-                        print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
+                        if field['ident'] in visited_fields:
+                            f_distance = calculate_distance(current_field, field['ident'])
+                            # Print visited fields in red
+                            print(
+                                f"{Fore.GREEN}ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km (Vierailtu!){Fore.RESET}")
+                        else:
+                            f_distance = calculate_distance(current_field, field['ident'])
+                            print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
 
                     while True:
                         try:
                             dest = input('Syötä kohdekentän ICAO: ').upper()
                             if dest in visited_fields:
-                                print("Olet jo vieraillut tässä kentässä!")
+                                print(Fore.RED + "Olet jo vieraillut tässä kentässä!" + Fore.RESET)
                             elif dest in [field['ident'] for field in fields]:
                                 selected_distance = calculate_distance(current_field, dest)
                                 update_location(dest, player_range, points, game_id)
@@ -297,17 +316,23 @@ def main():
 
         if played < 3:
             fields = fields_in_range(current_field, all_fields, player_range)
-            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields)}.')
+            print(f'Voit lentää näin monelle jalkapallokentälle {len(fields) - len(visited_fields)}.')
             print('Jalkapallokentät:')
             for field in fields:
-                f_distance = calculate_distance(current_field, field['ident'])
-                print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
+                if field['ident'] in visited_fields:
+                    f_distance = calculate_distance(current_field, field['ident'])
+                    # Print visited fields in red
+                    print(
+                        f"{Fore.GREEN}ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km (Vierailtu!){Fore.RESET}")
+                else:
+                    f_distance = calculate_distance(current_field, field['ident'])
+                    print(f"ICAO: {field['ident']}, Name: {field['name']}, Distance: {f_distance:.0f}km")
 
             while True:
                 try:
                     dest = input('Syötä kohdekentän ICAO: ').upper()
                     if dest in visited_fields:
-                        print("Olet jo vieraillut tässä kentässä!")
+                        print(Fore.RED + "Olet jo vieraillut tässä kentässä!" + Fore.RESET)
                     elif dest in [field['ident'] for field in fields]:
                         selected_distance = calculate_distance(current_field, dest)
                         update_location(dest, player_range, points, game_id)
@@ -320,9 +345,9 @@ def main():
                     print("Virheellinen syöte. Syötä kohdekentän ICAO-koodi.")
 
     if score == 7:
-        print(f'Se oli siinä! POIKA TULI KOTIIN!!!')
-        print(f'Pelasit turnauksen kunniakkaasti loppuun ja voitit jokaisen ottelun!')
-        print(f'SUOMI ON MAAILMANMESTARI!')
+        print(Fore.LIGHTYELLOW_EX + 'Se oli siinä! POIKA TULI KOTIIN!!!' + Fore.RESET)
+        print(Fore.LIGHTYELLOW_EX + 'Pelasit turnauksen kunniakkaasti loppuun ja voitit jokaisen ottelun!' + Fore.RESET)
+        print(Fore.LIGHTYELLOW_EX + 'SUOMI ON MAAILMANMESTARI!' + Fore.RESET)
         print(f'Pelasit {played} ottelua ja voitit {score} ottelua. Sait {points} verran pisteitä!')
     else:
         print(f'Taistelit hienosti, mutta et valitettavasti voittanut jokaista peliä.')
@@ -336,5 +361,5 @@ if __name__ == "__main__":
 # TODO
 """ 
 Parantele pelin käyttettävyyttä yksinkertaistamalla ja selkeyttämällä python terminaalia.
-Jos ehdit lisää vinkki kysymyksiä ja muita pelejä
+Jos ehdit lisää vinkki kysymyksiä ja muita pelejä.
 """
