@@ -3,8 +3,9 @@ import textwrap
 story = """Olet Huuhkajien kapteeni. Saavuit Yhdysvaltoihin osallistuaksesi vuoden 2026 FIFAn MM-kisoihin.
 Olet taistellut urhoollisesti karsintavaiheen läpi ja tehnyt maastasi ylpeän. Nyt alkaa todellinen taistelu!
 Oletko valmis? Aloitit tiesi kunniaan ja kuuluisuuteen ensimmäiseltä lentokentältä.Olet päättänyt tuoda iloa ja tehdä maanmiehistäsi ylpeitä. 
-Saavut ensimmäiselle jalkapallokentälle ja pidät siellä valmistautumisleirin. Jatkat sieltä seuraavalle kentälle pelaat siellä ensimmäisen rangaistuspotkukilpailusi. 
+Saavut ensimmäiselle jalkapallokentälle ja pidät siellä valmistautumisleirin. Jatkat sieltä seuraavalle kentälle ja pelaat siellä ensimmäisen rangaistuspotkukilpailusi. 
 Pelaat viisaasti ja voitat Yhdysvallat, joka oli ensimmäinen vastustajasi. Pelaat loput lohkopelisi ja voitat kaksi ensimmäistä peliä. Varmistat itsellesi paikan pudotuspeleihin ja kolmanteen peliin menet rennolla fiiliksellä.
+
 Pudotuspelivaihe alkaa ja nyt on kyllä kovan paikka. Se on Messin johtama Argentiina. Tiedät jo, että mikäli voitat heidät, palkinto tulee olemaan valtava. 
 Menet sinne ja näytät heille, mistä olet tehty. Teet turnauksen ensimmäisen yllätyksen ja voitat heidät! Etenet 8-parhaan joukkoon.
 Tarinan edetessä siirryt seuraaville lentokentille ja dominoit vastustajiasi. Viimein saavut jollekin jäljellä olevaan lentokenttään ja sieltä löydät viimeisen vastustajasi.
@@ -82,3 +83,49 @@ kanada = (
     Fore.RED + text[5:] +  # Color "an" in red
     Fore.RESET  # Reset color to default
 )
+
+
+from colorama import Fore
+
+text = """
+  ____  _   _  ___  __  __ _____ _   _     __  __ __  __       _  _____ ____    _  _____ 
+ / ___|| | | |/ _ \|  \/  | ____| \ | |   |  \/  |  \/  |     | |/ /_ _/ ___|  / \|_   _|
+ \___ \| | | | | | | |\/| |  _| |  \| |   | |\/| | |\/| |_____| ' / | |\___ \ / _ \ | |  
+  ___) | |_| | |_| | |  | | |___| |\  |   | |  | | |  | |_____| . \ | | ___) / ___ \| |  
+ |____/ \___/ \___/|_|  |_|_____|_| \_|   |_|  |_|_|  |_|     |_|\_\___|____/_/   \_\_|  
+"""
+
+# Suomen lipun värit: sininen, valkoinen ja punainen
+colors = [Fore.BLUE, Fore.WHITE, Fore.RED]
+
+# Väritetään teksti Suomen lipun väreissä
+colored_text = ""
+color_idx = 0  # Indeksi värien vaihtamiseksi
+
+for char in text:
+    if char.isalpha():
+        # Väritetään kirjaimet Suomen lipun väreissä
+        colored_text += f"{colors[color_idx % len(colors)]}{char}"
+        color_idx += 1
+    else:
+        # Jätetään muut merkit alkuperäisessä värissään
+        colored_text += char
+
+
+trophy = '🏆'
+sad_emoji = "\U0001F622"
+smiley_emoji = "\U0001F604"
+fanfare_emoji = "\U0001F389"
+number1_emoji = "\U0001F947"
+football_emoji = "\u26BD"
+airplane_emoji = "\u2708"
+takeoff_airplane_emoji = "\U0001F6EB"
+landing_airplane_emoji = "\U0001F6EC"
+check_mark_emoji = "\u2713"
+x_emoji = "\u274C"
+stadium_emoji = '🏟️'
+next_emoji = '➡️'
+statue_of_liberty_emoji = '🗽'
+cactus_emoji = '🌵'
+maple_emoji = '🍁'
+diagram_emoji = '📊'
