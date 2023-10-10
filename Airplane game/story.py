@@ -3,14 +3,14 @@ from colorama import Fore
 
 story = """Olet Huuhkajien kapteeni. Saavuit Yhdysvaltoihin osallistuaksesi vuoden 2026 FIFAn MM-kisoihin.
 Olet taistellut urhoollisesti karsintavaiheen läpi ja tehnyt maastasi ylpeän. Nyt alkaa todellinen taistelu!
-Oletko valmis? Aloitit tiesi kunniaan ja kuuluisuuteen ensimmäiseltä lentokentältä.Olet päättänyt tuoda iloa ja tehdä maanmiehistäsi ylpeitä. 
+Oletko valmis? Aloitit tiesi kunniaan ja kuuluisuuteen ensimmäiseltä jalkapallokentältä.Olet päättänyt tuoda iloa ja tehdä maanmiehistäsi ylpeitä. 
 Saavut ensimmäiselle jalkapallokentälle ja pidät siellä valmistautumisleirin. Jatkat sieltä seuraavalle kentälle ja pelaat siellä ensimmäisen rangaistuspotkukilpailusi. 
 Pelaat viisaasti ja voitat Yhdysvallat, joka oli ensimmäinen vastustajasi. Pelaat loput lohkopelisi ja voitat kaksi ensimmäistä peliä. Varmistat itsellesi paikan pudotuspeleihin ja kolmanteen peliin menet rennolla fiiliksellä.
 Pudotuspelivaihe alkaa ja nyt on kyllä kovan paikka. Se on Messin johtama Argentiina. Tiedät jo, että mikäli voitat heidät, palkinto tulee olemaan valtava. 
 Menet sinne ja näytät heille, mistä olet tehty. Teet turnauksen ensimmäisen yllätyksen ja voitat heidät! Etenet 8-parhaan joukkoon.
-Tarinan edetessä siirryt seuraaville lentokentille ja dominoit vastustajiasi. Viimein saavut jollekin jäljellä olevaan lentokenttään ja sieltä löydät viimeisen vastustajasi.
+Tarinan edetessä siirryt seuraaville kentille ja dominoit vastustajiasi. Viimein saavut jollekin jäljellä olevaan kenttään ja sieltä löydät viimeisen vastustajasi.
 Finaali aika koittaa. Sinun ja maailmanmestaruuden välillä on enää yksi ottelu. Olet synnynnäinen voittaja, eikä häviö ole edes vaihtoehto, kuten olemme jo sen saaneet tietää,
-Pelaat finaalin viileästi ja voitat sen. OLET MAAILMANMESTARI!!! Saavutit tavoitteesi ja voitit vastustajasi. Onnittelut!!!"""
+Pelaat finaalin viileästi ja voitat sen. OLET MAAILMANMESTARI!!! Saavutit tavoitteesi ja voitit vastustajasi. Onnittelut!!!!!!"""
 
 
 story1 = textwrap.fill(story, 95)
