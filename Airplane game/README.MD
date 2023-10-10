@@ -39,9 +39,7 @@ Tämä peli käyttää relaatiotietokantakurssin tietokantaa pohjana.
    location varchar(10) null,
    screen_name  varchar(40) null,
    player_range int null
-);
-      charset = latin1;
-   
+); 
    ```sql
     create table world (
    id int not null auto_increment primary key,
