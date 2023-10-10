@@ -38,15 +38,13 @@ Tämä peli käyttää relaatiotietokantakurssin tietokantaa pohjana.
    points int(11) null,
    location varchar(10) null,
    screen_name  varchar(40) null,
-   player_range int null
-); 
+   player_range int null); 
    ```sql
     create table world (
    id int not null auto_increment primary key,
    name varchar(40) null,
    points int(11) null,
-   probability int null
-);
+   probability int null);
     
 INSERT INTO world (name, points, probability)
 VALUES 
@@ -59,14 +57,12 @@ VALUES
 	('Argentiina', 2000, 1);
    ```
    ```sql
-    create table arenas
-(
+    create table arenas (
 	id int auto_increment primary key,
     game int null,
     airport varchar(11) not null,
     goal int null,
-    opened tinyint(1) default 0 null
-);
+    opened tinyint(1) default 0 null);
    ```
 
 ```sql
@@ -78,8 +74,7 @@ CREATE TABLE fields (
     longitude_deg DOUBLE NULL,
     continent VARCHAR(40) NULL,
     iso_country VARCHAR(40),
-    FOREIGN KEY (iso_country) REFERENCES country(iso_country)
-);
+    FOREIGN KEY (iso_country) REFERENCES country(iso_country));
 
 
 INSERT INTO wc_fields (id, ident, name, latitude_deg, longitude_deg, continent, iso_country)
