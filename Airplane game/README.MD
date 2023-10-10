@@ -106,4 +106,4 @@ VALUES
 
 6. Tarkista että sinulla on tarvittavat taulukot. Tässä pelissä tarvitset vain wc_fields, world, arenas, game ja country taulukkoja.
 
-7. World_cup_game.py kansiossa on pelin koodi. Penalties.py kansiossa on pelin rangaistuspotkukilpailun koodi. Story.py kansiossa on pelin tarina, säännöt ja emojit. Database.sql kansiossa on pelin tietokannan taulukkojen luomiskoodit.
+7. World_cup_final_version.py kansiossa on pelin koodi. Penalties.py kansiossa on pelin rangaistuspotkukilpailun koodi. Story.py kansiossa on pelin tarina, säännöt ja emojit. Database.sql kansiossa on pelin tietokannan taulukkojen luomiskoodit.
