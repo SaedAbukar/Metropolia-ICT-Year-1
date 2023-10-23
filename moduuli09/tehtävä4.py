@@ -9,7 +9,8 @@
 # The competition continues until one of the cars has traveled at least 10,000 kilometers.
 # Finally, all the characteristics of each car are printed in a clear table.
 import random
-class CAR:
+
+class Car:
     def __init__(self, license_plate, top_speed):
         self.license_plate = license_plate
         self.top_speed = top_speed
@@ -42,7 +43,7 @@ class CAR:
 cars = []
 i = 1
 for i in range(1, 11):
-    car = CAR(f'ABC-{i}', random.randint(100, 200))
+    car = Car(f'ABC-{i}', random.randint(100, 200))
     cars.append(car)
     i += 1
 
