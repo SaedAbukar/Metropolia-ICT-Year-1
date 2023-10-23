@@ -15,14 +15,22 @@ class CAR:
         if self.current_speed > self.top_speed:
             self.current_speed = self.top_speed
         if change_of_speed < 0:
+            self.current_speed += change_of_speed
+        if self.current_speed < 0:
             self.current_speed = 0
         else:
             self.current_speed = new_speed
+        if self.current_speed > 0:
+            print(f'The car accelerates to {self.current_speed} km/h')
+        else:
+            print(f'The car decelerates to {self.current_speed} km/h')
 
-    def go(self, hours):
-        new_distance = self.current_speed * hours
-        self.distance_traveled += new_distance
+    def move(self, hour):
+        new_distance = self.distance_traveled + (self.current_speed * hour)
+        if hour > 1:
+            print(f'Current traveled distance is {self.distance_traveled}km. Current speed is {self.current_speed}km/h. Hour elapsed is {hour} hours. The car traveled to {new_distance}km')
+        else:
+            print(f'Current traveled distance is {self.distance_traveled}km. Current speed is {self.current_speed}km/h. Hour elapsed is {hour} hour. The car traveled to {new_distance}km')
 
-new_car = CAR('ABC-123', 142, 60, 2000)
-new_car.go(1.5)
-print(f'The car traveled {new_car.distance_traveled:.0f} kilometers')
+new_car = CAR("ABC-123", 142, 60, 2000)
+new_car.move(1.5)
