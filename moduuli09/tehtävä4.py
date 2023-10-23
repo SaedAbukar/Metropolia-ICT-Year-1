@@ -10,7 +10,6 @@
 # Finally, all the characteristics of each car are printed in a clear table.
 import random
 class CAR:
-
     def __init__(self, license_plate, top_speed):
         self.license_plate = license_plate
         self.top_speed = top_speed
@@ -22,34 +21,43 @@ class CAR:
         if self.current_speed > self.top_speed:
             self.current_speed = self.top_speed
         if change_of_speed < 0:
+            self.current_speed += change_of_speed
+        if self.current_speed < 0:
             self.current_speed = 0
         else:
             self.current_speed = new_speed
+        # if self.current_speed > 0:
+        #     print(f'The car accelerates to {self.current_speed} km/h')
+        # else:
+        #     print(f'The car decelerates to {self.current_speed} km/h')
 
-    def go(self, hours):
-        new_distance = self.current_speed * hours
+    def move(self, hour):
+        new_distance = (self.current_speed * hour)
         self.distance_traveled += new_distance
-
+        # if hour > 1:
+        #     print(f'Current traveled distance is {self.distance_traveled}km. Current speed is {self.current_speed}km/h. Hour elapsed is {hour} hours. The car traveled to {new_distance}km')
+        # else:
+        #     print(f'Current traveled distance is {self.distance_traveled}km. Current speed is {self.current_speed}km/h. Hour elapsed is {hour} hour. The car traveled to {new_distance}km')
 
 cars = []
 i = 1
-
 for i in range(1, 11):
-    car = CAR(f'ABC{i}', random.randint(100, 200))
+    car = CAR(f'ABC-{i}', random.randint(100, 200))
     cars.append(car)
     i += 1
-    # print(car.current_speed)
 
-competition_is_on = True
+
+
+race = True
 duration = 1
 
-while competition_is_on:
-    competition_is_on = False
+while race:
     for car in cars:
         car.accelerate(random.randint(-10, 15))
-        car.go(1)
-        if car.distance_traveled < 10000:
-            competition_is_on = True
+        car.move(1)
+        if car.distance_traveled >= 10000:
+            race = False
+
 print('The result of the competition')
 print('{:<15} {:<15} {:<15} {:<15}'.format('License plate', 'Top speed', 'Speed', 'Distance traveled'))
 for car in cars:
