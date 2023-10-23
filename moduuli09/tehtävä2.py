@@ -19,9 +19,15 @@ class CAR:
         if self.current_speed > self.top_speed:
             self.current_speed = self.top_speed
         if change_of_speed < 0:
+            self.current_speed += change_of_speed
+        if self.current_speed < 0:
             self.current_speed = 0
         else:
             self.current_speed = new_speed
+        if self.current_speed > 0:
+            print(f'The car accelerates to {self.current_speed} km/h')
+        else:
+            print(f'The car decelerates to {self.current_speed} km/h')
 
 
 new_car = CAR('ABC-123', 142, 0)
