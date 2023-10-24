@@ -5,57 +5,44 @@
 # Enter the method run_elevator in the house, which receives the elevator number and target floor as parameters.
 # In the main program, write the sentences to create the house and ride the elevators in the house.
 class Elevator:
-
-    def __init__(self, lowest_floor, highest_floor, number_of_elevator):
-        self.current_floor = lowest_floor
+    def __init__(self, lowest_floor, highest_floor):
         self.lowest_floor = lowest_floor
         self.highest_floor = highest_floor
-        self.number_of_elevator = number_of_elevator
+        self.current_floor = lowest_floor
 
-    # Method to move the elevator up one floor
-    def floor_up(self):
+    def move_to_floor(self, floor):
+        while floor > self.current_floor:
+            self.move_up()
+        while floor < self.current_floor:
+            self.move_down()
+
+    def move_up(self):
         if self.current_floor < self.highest_floor:
             self.current_floor += 1
             print(f'The elevator is now in floor {self.current_floor}')
 
-    # Method to move the elevator down one floor
-    def floor_down(self):
+    def move_down(self):
         if self.current_floor > self.lowest_floor:
             self.current_floor -= 1
             print(f'The elevator is now in floor {self.current_floor}')
 
-    # Method to move the elevator to a specific floor
-    def move_to_floor(self, target_floor):
-        while self.current_floor < target_floor:
-            self.floor_up()
-        while self.current_floor > target_floor:
-            self.floor_down()
-
 
 class House:
-
-    def __init__(self, lowest_floor, highest_floor, number_of_elevators):
+    def __init__(self, lowest_floor, highest_floor, elevator_numbers):
         self.lowest_floor = lowest_floor
         self.highest_floor = highest_floor
-        self.current_floor = lowest_floor
-        self.number_of_elevators = number_of_elevators
-        self.elevators = []
+        self.elevator_numbers = elevator_numbers
+        self.elevators = [Elevator(lowest_floor, highest_floor) for i in range(elevator_numbers)]
 
-
-    def run_elevator(self, elevator_number, target_floor):
-        # if self.elevators < self.number_of_elevators:
-        #     self.elevators.append(elevator_number)
-        if elevator_number < len(self.elevators):
+    def move_elevator(self, elevator_number, target_floor):
+        if 0 <= elevator_number < len(self.elevators):
             elevator = self.elevators[elevator_number]
             elevator.move_to_floor(target_floor)
         else:
-            print(f'Elevator {elevator_number} doesnt exist')
+            print(f"Elevator number doesn't exist")
 
+house = House(0, 20, 3)
 
-elevator1 = Elevator(0, 10, 1)
-elevator2 = Elevator(0, 10, 2)
-elevator3 = Elevator(0, 10, 3)
-
-house1 = House(0, 10, 3)
-house1.elevators.extend([elevator1, elevator2, elevator3])
-house1.run_elevator(2, 7)
+house.move_elevator(0, 10)
+house.move_elevator(1, 15)
+house.move_elevator(2, 5)
