@@ -8,28 +8,27 @@
 # and telling it to go to the floor you want and then back to the lowest floor.
 class Elevator:
     def __init__(self, lowest_floor, highest_floor):
-        self.current_floor = lowest_floor
         self.lowest_floor = lowest_floor
         self.highest_floor = highest_floor
+        self.current_floor = lowest_floor
 
-    def floor_up(self):
+    def move_to_floor(self, floor):
+        while floor > self.current_floor:
+            self.move_up()
+        while floor < self.current_floor:
+            self.move_down()
+
+    def move_up(self):
         if self.current_floor < self.highest_floor:
             self.current_floor += 1
             print(f'The elevator is now in floor {self.current_floor}')
 
-    def floor_down(self):
+    def move_down(self):
         if self.current_floor > self.lowest_floor:
             self.current_floor -= 1
             print(f'The elevator is now in floor {self.current_floor}')
 
-    def move_to_floor(self, target_floor):
-        while self.current_floor < target_floor:
-            self.floor_up()
-        while self.current_floor > target_floor:
-            self.floor_down()
-
 
 elevator1 = Elevator(0, 20)
 elevator1.move_to_floor(5)
-
 elevator1.move_to_floor(elevator1.lowest_floor)
