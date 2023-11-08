@@ -14,13 +14,15 @@ def search_airport(ident):
     if cursor.rowcount == 1:
         for row in result:
             print(f"The airport you searched for is {row[0]} and location is {row[1]}.")
+    else:
+        print(f"Your ICAO: '{ident}' was an invalid one...")
     return
 
 
 connection = mysql.connector.connect(
          host='127.0.0.1',
          port=3306,
-         database='flight_game',
+         database='world_cup',
          user='root',
          password='12345678',
          autocommit=True

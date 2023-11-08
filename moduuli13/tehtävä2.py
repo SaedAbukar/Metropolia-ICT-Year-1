@@ -1,12 +1,14 @@
 from flask import Flask, Response, render_template
 import json
 import airport_db_search
+import requests
 
 
 app = Flask(__name__)
 app.debug = True
 
-@app.route('/airport/<icao>')
+
+@app.route('/airport/<icao>', methods=['GET'])
 def airport_response(icao):
 
     try:
@@ -30,9 +32,8 @@ def airport_response(icao):
     response = Response(response=response_data, status=status_code, mimetype="application/json")
     return response
 
-
 @app.errorhandler(404)
-def page_not_found():
+def page_not_found(e):
     response = {
         "status": "404",
         "text": "Invalid endpoint"
@@ -41,15 +42,15 @@ def page_not_found():
     return Response(response=json_response, status=404, mimetype="application/json")
 
 
-# @app.errorhandler(500)
-# def page_not_found():
-#     response = {
-#         "status": "500",
-#         "text": "ICAO-code not found"
-#     }
-#     json_response = json.dumps(response)
-#     return Response(response=json_response, status=404, mimetype="application/json")
-#
+@app.errorhandler(500)
+def page_not_found():
+    response = {
+        "status": "500",
+        "text": "ICAO-code not found"
+    }
+    json_response = json.dumps(response)
+    return Response(response=json_response, status=404, mimetype="application/json")
+
 
 if __name__ == '__main__':
     app.run(use_reloader=True, host='127.0.0.1', port=5000)
