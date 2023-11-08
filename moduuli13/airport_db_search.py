@@ -28,6 +28,3 @@ def airport_search(icao):
         return result
     else:
         return "not found", "not found"
-
-
-airport_search('efgh')
