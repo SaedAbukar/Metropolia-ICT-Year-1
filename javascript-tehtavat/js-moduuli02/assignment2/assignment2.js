@@ -1,3 +1,4 @@
+'use strict';
 const numOfParti = parseInt(prompt(`Enter the number of participants`));
 const namesList = [];
 const orderList = document.createElement('ol');

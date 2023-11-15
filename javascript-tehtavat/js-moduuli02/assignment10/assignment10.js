@@ -1,3 +1,4 @@
+'use strict';
 const numberOfCandidates = parseInt(prompt('Enter the number of candidatess:'));
 const candidates = [];
 

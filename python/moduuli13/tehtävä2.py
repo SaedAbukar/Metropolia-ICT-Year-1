@@ -1,8 +1,6 @@
-from flask import Flask, Response, render_template
+from flask import Flask, Response
 import json
 import airport_db_search
-import requests
-
 
 app = Flask(__name__)
 app.debug = True
