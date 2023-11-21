@@ -10,7 +10,7 @@ form.addEventListener('submit', async function(evt) {
       const showData = jsonData[0].show;
       const showName = showData.name;
       const officialSite = showData.url;
-      const image = showData.image?.medium ? showData.image.medium : 'https://via.placeholder.com/210x295?text=Not%20Found';
+      const image = showData.image?.medium;
       const summary = showData.summary;
       result(showName, officialSite, image, summary);
     } else {
