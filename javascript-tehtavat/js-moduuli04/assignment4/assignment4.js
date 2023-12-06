@@ -1,4 +1,6 @@
 const form = document.querySelector('form');
+const elementContainer = document.createElement('div');
+elementContainer.id = "results";
 
 form.addEventListener('submit', async function(evt) {
   evt.preventDefault();
@@ -22,7 +24,6 @@ form.addEventListener('submit', async function(evt) {
 });
 
 function result(showName, officialSite, image, summary) {
-
   const existingContainer = document.getElementById("results");
   if (existingContainer) {
     existingContainer.innerHTML = '';
@@ -32,7 +33,6 @@ function result(showName, officialSite, image, summary) {
   const a = document.createElement('a');
   const img = document.createElement('img');
   const article = document.createElement('article');
-  const elementContainer = document.createElement('div');
 
   headerTwo.textContent = showName;
   div.innerHTML = summary;
@@ -47,8 +47,7 @@ function result(showName, officialSite, image, summary) {
   // console.log(div);
   // console.log(img);
   // console.log(article);
-  elementContainer.id = "results";
   elementContainer.append(article);
-
-  document.body.appendChild(elementContainer);
 }
+
+document.body.appendChild(elementContainer);

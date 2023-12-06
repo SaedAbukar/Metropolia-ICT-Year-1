@@ -1,0 +1,314 @@
+body {
+    background-image: url("../img/arcade-backgroundpic.jpg");
+    background-size: cover;
+    font-family: 'Arial', sans-serif;
+}
+
+.container {
+    background-color: rgba(211, 187, 255, 0.5);
+    width: 100%;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+header {
+    background-color: rgba(211, 187, 255, 1);
+    border: 2px solid white;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    border-radius: 8px;
+}
+
+.hide_h2 {
+    display: none;
+}
+
+h1 {
+    font-size: 3rem;
+    color: black;
+}
+
+nav {
+    background-color: rgba(211, 187, 255, 1);
+    display: flex;
+    white-space: nowrap;
+}
+
+.homepic {
+    display: flex;
+    width: 60px;
+    height: 60px;
+    margin-top: 25px;
+    margin-left: 1rem;
+}
+
+.homepic:hover {
+    background-color: rgba(79, 0, 176, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.7);
+    transition: 0.5s;
+}
+
+main {
+    background-color: rgba(211, 187, 255, 0);
+    padding: 1rem;
+    text-align: center;
+}
+
+section {
+    background-color: rgba(211, 187, 255, 0);
+    margin: auto;
+}
+
+.arcade-pic {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
+ul {
+    background-color: rgba(211, 187, 255, 0.5);
+    display: flex;
+    list-style-type: none;
+    justify-content: space-evenly;
+    margin-top: 34px;
+    padding-right: 2rem;
+    width: 100%;
+}
+
+li a {
+    background-color: rgba(211, 187, 255, 0.5);
+    color: black;
+    display: block;
+    text-align: center;
+    line-height: 3rem;
+    text-decoration: none;
+    width: 6rem;
+}
+
+li a:hover {
+    background-color: rgba(79, 0, 176, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.7);
+    transition: 0.5s;
+}
+
+.nav-items {
+    margin-left: 2rem;
+}
+
+section {
+    background-color: rgba(211, 187, 255, 1);
+    border: 2px solid white;
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.home-wrapper article h2 p {
+    background-color: rgba(211, 187, 255, 0);
+}
+
+article h2 {
+}
+
+.product h2 {
+    height: 50px;
+    font-size: 20px;
+}
+
+a {
+    background-color: rgba(211, 187, 255, 0.5);
+    color: black;
+    text-decoration: none;
+}
+
+img {
+    border-radius: 8px;
+}
+
+.moi {
+    display: none;
+}
+
+/* Products CSS */
+
+.products-wrapper {
+    background-color: #d3bbff;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.product {
+    justify-content: space-between;
+    flex: 1;
+    padding: 0 3% 0;
+    box-sizing: border-box;
+    text-align: center;
+    margin: 1.5vh;
+    width: calc(100% / 3);
+    border: 2px solid white;
+    border-radius: 8px;
+}
+
+.product:hover {
+    background-color: rgba(79, 0, 176, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.7);
+    transition: 0.5s;
+}
+
+.product-pic {
+    flex: 2;
+    width: 10rem;
+    max-height: 100%;
+    max-width: 100%;
+    padding-top: 2rem;
+    border-radius: 8px;
+}
+
+#arcade-pic-product {
+    flex: 2;
+    height: 309px;
+    width: 464px;
+    max-height: 100%;
+    max-width: 100%;
+}
+
+figure {
+    height: 8rem;
+    padding-bottom: 2rem;
+}
+
+/* Contacts CSS */
+
+.h2contact {
+    width: 100%;
+    text-align: left;
+    padding-left: 6rem;
+}
+
+.contact-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: row;
+}
+
+.contact-wrapper article:first-child {
+    background-color: #d3bbff;
+    flex: 1;
+}
+
+.contact-wrapper article {
+    text-align: left;
+    height: 50vh;
+    max-height: 50vh;
+    max-width: 50vh;
+    box-sizing: border-box;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.contact-wrapper article p {
+    margin: 0;
+    padding: 0;
+}
+
+.contact-wrapper article .map {
+    flex: 2;
+    height: 100%;
+    width: 100%;
+    max-height: 100%;
+    max-width: 100%;
+    border-radius: 8px;
+}
+
+.contact-wrapper article map:hover {
+    background-color: rgba(79, 0, 176, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.7);
+    transition: 0.5s;
+}
+
+/* Penalties css*/
+
+#start-img {
+    max-height: 100%;
+    max-width: 100%;
+    padding-top: 2rem;
+    border-radius: 8px;
+}
+
+.hide {
+    display: none;
+}
+
+.button {
+    display: flex;
+    justify-content: space-evenly;
+    padding: 1rem;
+}
+button {
+    background-color: rgba(211, 187, 255, 0.5);
+    color: black;
+    text-align: center;
+    line-height: 3rem;
+    text-decoration: none;
+    border: 1px solid white;
+    border-radius: 8px;
+}
+
+button:hover {
+    box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.7);
+    transition: 0.5s;
+}
+
+.penalty-info {
+    display: flex;
+    text-align: right;
+    margin: auto;
+    padding: 1rem;
+    border: 1px solid white;
+    border-radius: 8px;
+}
+
+.penalty-info p {
+    text-align: center;
+    vertical-align: center;
+    justify-content: space-around;
+    margin: auto;
+    padding: 1rem;
+    border: 1px solid white;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+
+
+/*input {*/
+/*    background-color: rgba(211, 187, 255, 0.5);*/
+/*    color: black;*/
+/*    text-align: center;*/
+/*    line-height: 3rem;*/
+/*    text-decoration: none;*/
+/*    border-radius: 8px;*/
+/*}*/
+
+/*input:hover {*/
+/*    box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.7);*/
+/*    transition: 0.5s;*/
+/*}*/
+
+
+@media only screen and (min-width: 600px) {
+    .container {
+        width: 70%;
+        margin: auto;
+    }
+
+    /* Add other styles for larger screens here */
+}
+
+
