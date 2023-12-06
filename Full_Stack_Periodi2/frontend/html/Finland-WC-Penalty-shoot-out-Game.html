@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+    <link rel="stylesheet" href="../test_checkb4deleting/stylesheet.css" type="text/css">
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="../js/game.js" defer></script>
     <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
@@ -20,7 +24,23 @@
     </header>
     <main>
         <section>
-            <div>
+            <div id="map"></div>
+                <form id="single">
+                    <input name="icao" placeholder="Input airport icao code">
+                    <input type="submit" value="Search">
+                </form>
+                <form id="list-selection">
+                <!--    <select id="continents">-->
+                <!--        <option>Select Continent</option>-->
+                <!--    </select>-->
+                    <select id="countries">
+                        <option>Select Country</option>
+                    </select>
+                    <select id="airports">
+                        <option>Select Airport</option>
+                    </select>
+                </form>
+            <div id="actual-map">
                 <figure>
                     <img id="start-img" src="../img/Suomen-MM-kisa-peli.jpg"/>
                 </figure>

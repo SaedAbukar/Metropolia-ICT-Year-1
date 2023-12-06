@@ -5,6 +5,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 const airportMarkers = L.featureGroup().addTo(map);
 
+// const startingPointIcon = L.icon({
+//     iconUrl: 'icons/starting_point.png', // Replace with the path to your icon image
+//     iconSize: [41, 41], // Size of the icon. This is the default size for Leaflet's marker icon.
+//     iconAnchor: [12, 41], // Point of the icon which will correspond to marker's location.
+//     popupAnchor: [8, -41] // Point from which the popup should open relative to the iconAnchor.
+// });
+
 document.addEventListener('DOMContentLoaded',  async (e) => {
   console.log('DOM loaded');
 
@@ -35,19 +42,19 @@ async function getFields() {
 //
 //     airportMarkers.clearLayers();
 //
-//     const response = await fetch('http://127.0.0.1:3000/get_field_info/' + random_icao);
-//     const airport = await response.json();
+//     const response = await fetch('http://127.0.0.1:3000/fields/' + random_icao);
+//     const field = await response.json();
 //
-//     const marker = L.marker([airport.latitude_deg, airport.longitude_deg], {'icon': startingPointIcon}).
+//     const marker = L.marker([field.latitude_deg, field.longitude_deg], {'icon': startingPointIcon}).
 //         addTo(map).
-//         bindPopup(airport.name).
+//         bindPopup(field.name).
 //         openPopup();
 //     airportMarkers.addLayer(marker);
 //
 //     // pan map to selected airport
-//     map.flyTo([airport.latitude_deg, airport.longitude_deg]);
+//     map.flyTo([field.latitude_deg, field.longitude_deg]);
 //
-//     return airport;
+//     return field;
 // }
 
 async function showStartingFields(fields) {
@@ -105,8 +112,8 @@ async function updateLocation(icao, p_range, u_points, g_id) {
 // const continentList = document.querySelector('#continents');
 // const countryList = document.querySelector('#countries');
 // const airportList = document.querySelector('#airports');
-
-// Start with adding continents
+//
+// // Start with adding continents
 // async function showContinents() {
 //   const response = await fetch('http://127.0.0.1:3000/continents');
 //   const continents = await response.json();
@@ -117,10 +124,10 @@ async function updateLocation(icao, p_range, u_points, g_id) {
 //     continentList.appendChild(option);
 //   }
 // }
-
+//
 // showContinents(); // this starts the loading of continents
-
-// when continent is selected get countries and add to second list...
+//
+// // when continent is selected get countries and add to second list...
 // continentList.addEventListener('change', async function() {
 //   countryList.innerHTML = '<option>Select Country</option>'; // empty the country and airport lists because the user might change continent
 //   airportList.innerHTML = '<option>Select Airport</option>';
@@ -134,8 +141,8 @@ async function updateLocation(icao, p_range, u_points, g_id) {
 //     countryList.appendChild(option);
 //   }
 // });
-
-// when country is selected get airports and add to third list...
+//
+// // when country is selected get airports and add to third list...
 // countryList.addEventListener('change', async function() {
 //   airportList.innerHTML = '<option>Select Airport</option>'; // empty the airport list because the user might change country
 //   const response = await fetch(
@@ -148,8 +155,8 @@ async function updateLocation(icao, p_range, u_points, g_id) {
 //     airportList.appendChild(option);
 //   }
 // });
-
-// when airport is selected show it on the map...
+//
+// // when airport is selected show it on the map...
 // airportList.addEventListener('change', async function() {
 //   const response = await fetch(
 //       'http://127.0.0.1:3000/airport/' + airportList.value);
@@ -165,5 +172,6 @@ async function updateLocation(icao, p_range, u_points, g_id) {
 //   // pan map to selected airport
 //   map.flyTo([airport.latitude_deg, airport.longitude_deg]);
 // });
+//
+// // *********************************************
 
-// *********************************************

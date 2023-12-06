@@ -19,8 +19,8 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 #     cursor.execute(sql)
 #     result = cursor.fetchall()
 #     return json.dumps(result)
-#
-#
+# #
+# #
 # @app.route('/countries/<continent>')
 # def countries_by_continent(continent):
 #     sql = f'''SELECT iso_country, name
@@ -35,7 +35,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 # @app.route('/airports/<country>')
 # def airports_by_country(country):
 #     sql = f'''SELECT ident, name, latitude_deg, longitude_deg
-#               FROM airport
+#               FROM wc_fields
 #               WHERE iso_country = %s'''
 #     cursor = db.get_conn().cursor(dictionary=True)
 #     cursor.execute(sql, (country,))
@@ -98,6 +98,16 @@ def get_opponents():
 #         cursor.execute(sql, (o_id, opp_ports[i]['ident'], opp_id))
 #
 #     return json.dumps(o_id)
+
+@app.route('/fields/<icao>')
+def airport(icao):
+    sql = f'''SELECT name, latitude_deg, longitude_deg
+              FROM wc_fields
+              WHERE ident=%s'''
+    cursor = db.get_conn().cursor(dictionary=True)
+    cursor.execute(sql, (icao,))
+    result = cursor.fetchone()
+    return json.dumps(result)
 
 
 @app.route('/get_field_info/<icao>')
