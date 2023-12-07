@@ -165,6 +165,28 @@ def update_location(icao, p_range, u_points, g_id):
     cursor.execute(sql, (icao, p_range, u_points, g_id))
     result = cursor.fetchone()
     return json.dumps(result)
+
+
+@app.route('/fields/closest/<lat>/<lon>')
+def get_closest_fields(lat, lon):
+    sql = f'''
+    SELECT name, ident, iso_country, id, latitude_deg, longitude_deg,
+            6371 * ACOS(
+                COS(RADIANS(%s)) * COS(RADIANS(latitude_deg)) 
+                * COS(RADIANS(%s - longitude_deg)) +
+                SIN(RADIANS(%s)) * SIN(RADIANS(latitude_deg))
+            ) AS Distance_KM
+        FROM
+            wc_fields
+        ORDER BY
+            Distance_KM ASC
+        LIMIT 16;
+    '''
+    cursor = db.get_conn().cursor(dictionary=True)
+    cursor.execute(sql, (lat, lon, lat))
+    result = cursor.fetchall()
+    print(json.dumps(result))
+    return json.dumps(result)
 #
 #
 if __name__ == '__main__':

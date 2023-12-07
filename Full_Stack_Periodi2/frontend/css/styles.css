@@ -293,21 +293,21 @@ button:hover {
     box-sizing: border-box;
 }
 
+.blue-icon {
+    background-color: #2474ff;
+    border-radius: 50%;
+    border: 5px solid rgba(255, 255, 255, 0.5);
+}
 
+.green-icon {
+    background-color: #27ba35;
+    border-radius: 50%;
+    border: 5px solid rgba(255, 255, 255, 0.5);
+}
 
-/*input {*/
-/*    background-color: rgba(211, 187, 255, 0.5);*/
-/*    color: black;*/
-/*    text-align: center;*/
-/*    line-height: 3rem;*/
-/*    text-decoration: none;*/
-/*    border-radius: 8px;*/
-/*}*/
-
-/*input:hover {*/
-/*    box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.7);*/
-/*    transition: 0.5s;*/
-/*}*/
+.leaflet-popup-content-wrapper {
+    background-color: rgba(211, 187, 255, 1);
+}
 
 
 @media only screen and (min-width: 600px) {
