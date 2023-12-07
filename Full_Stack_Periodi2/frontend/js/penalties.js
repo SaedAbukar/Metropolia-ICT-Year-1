@@ -3,6 +3,10 @@ const CENTER = 0;
 const LEFT = 1;
 const RIGHT = 2;
 
+
+const img = document.querySelector('#start-img');
+
+
 const O = "\u26BD";
 const divpen1 = document.createElement('div');
 const roundInfo = document.createElement('p');
@@ -67,6 +71,9 @@ button2.classList.add('hide');
 button1.classList.add('choice-button');
 button2.classList.add('choice-button');
 
+button1.setAttribute('data-selection', '1');
+button2.setAttribute('data-selection', '2');
+
 divpen4.append(button1, button2);
 section.append(divpen4);
 main.append(section);
@@ -74,6 +81,145 @@ divcontainer.append(main)
 document.body.append(divcontainer);
 
 
+roundInfo.innerHTML = 'Round: 0';
+scoreInfo.innerHTML = 'Score: 0 - 0';
+attemptInfo.innerHTML = 'Turn: -';
+shotDirection.innerHTML = 'Shot direction: - , dive direction: -';
+resultInfo.innerHTML = 'I might cheer you on...';
+finalResult.innerHTML = 'The game will start when you pick your side!';
+
+
+
+const selectionButtons = document.querySelectorAll('[data-selection]');
+const SELECTIONS = [1, 2]
+
+let numberRounds = 5;
+const team1 = 'Suomi';
+const team2 = 's';
+let gameContinues = true;
+let team1Score = 0;
+let team2Score = 0;
+let team1Turn = 0;
+let team2Turn = 0;
+let currentTeam = team2;
+let rounds = 0;
+
+
+selectionButtons.forEach(selectionButton => {
+    selectionButton.addEventListener('click', e => {
+        if (!gameContinues) {
+            return; // Stop processing clicks if the game is over
+        }
+        if (Math.abs(team1Score - team2Score) > (numberRounds - rounds) && team1Turn === team2Turn) {
+            gameContinues = false;
+            console.log(`${team1} yritykset: ${team1Turn}`);
+            console.log(`${team2} yritykset: ${team2Turn}`);
+            console.log(`Peli päättyi! ${team1} teki ${team1Score} ja ${team2} teki ${team2Score}`);
+            finalResult.innerHTML = `Game over! The Score is ${team1} ${team1Score} - ${team2} ${team2Score}`;
+            if (team1Score > team2Score) {
+                return team1;
+            } else if (team2Score > team1Score) {
+                console.log(`Ottelun voittaja on ${team2}!`);
+                return team2;
+            }
+        }
+
+        const selectionName = parseInt(selectionButton.dataset.selection);
+        const selection = SELECTIONS.find(selection => selection === selectionName);
+        makeSelection(selectionName)
+        if (team1Turn === team2Turn) {
+            rounds += 1;
+            console.log(`KIERROS ${rounds}`);
+            roundInfo.innerHTML = `Round: ${rounds}`;
+        }
+        console.log(`${team1} on tehnyt ${team1Score} maalia, ${team2} on tehnyt ${team2Score}.`);
+        // scoreInfo.innerHTML = `Score: ${team1} ${team1Score} - ${team2} ${team2Score}`
+        if (currentTeam === team1) {
+            currentTeam = team2;
+            button1.textContent = 'Shoot to the left';
+            button2.textContent = 'Shoot to the right';
+            console.log(`Nyt on ${currentTeam} joukkueen vuoro!`);
+            attemptInfo.innerHTML = `Turn: ${team1}`
+            team2Turn += 1;
+        } else {
+            currentTeam = team1;
+            button1.textContent = 'Dive to the left';
+            button2.textContent = 'Dive to the right';
+            console.log(`Nyt on ${currentTeam} joukkueen vuoro`);
+            attemptInfo.innerHTML = `Turn: ${team2}`
+            team1Turn += 1;
+        }
+
+        let kick;
+        if (currentTeam === team1) {
+            // kick = parseInt(prompt("Kumpaan suuntaan haluat vetää? (1: vasemmalle/2: oikealle)\n"));
+            kick = selection;
+        } else {
+            kick = Math.floor(Math.random() * 2) + 1;
+        }
+
+        let diveDirection;
+        if (currentTeam === team2) {
+            // diveDirection = parseInt(prompt("Minne maalivahti hyppää? (1: vasemmalle/2: oikealle)\n"));
+            diveDirection = selection;
+        } else {
+            diveDirection = dive();
+        }
+
+        if (goal(kick, diveDirection)) {
+            if (currentTeam === team1) {
+                img.src = '../img/penalty-goal.gif'
+                resultInfo.innerHTML = `Yes!! You scored a goal! The keeper had no chance!`
+                finalResult.innerHTML = `Now It's time to save the penalty shot! Choose where do you want to dive!`
+            } else {
+                img.src = '../img/penalty-allowed.gif'
+                resultInfo.innerHTML = `The opposition scored. You almost had it!`
+                finalResult.innerHTML = `Now it's time to pay them back! Choose where do you want to shoot!`
+            }
+            console.log(`Veto: ${kick} Torjunta: ${diveDirection}`);
+            console.log("Ja veto menee...");
+            printBall(kick);
+            console.log("Ja maalivahti menee...");
+            printGoalkeeper(diveDirection);
+            console.log(`${currentTeam} sai maalin!`);
+            shotDirection.innerHTML = `Shot direction: ${kick}, Dive direction: ${diveDirection}`;
+            scoreInfo.innerHTML = `Score: ${team1} ${team1Score} - ${team2} ${team2Score}`
+
+            if (currentTeam === team1) {
+                team1Score += 1;
+            } else {
+                team2Score += 1;
+            }
+        } else {
+            if (currentTeam === team1) {
+                img.src = '../img/penalty-miss.gif'
+                resultInfo.innerHTML = `Oh no! No goal! You missed the shot! Maybe next one!`
+                finalResult.innerHTML = `Get yourself together. We got a game to win. Choose where do you want to dive!`
+            } else {
+                img.src = '../img/penalty-save.gif'
+                resultInfo.innerHTML = `Yes! No goal! You saved the shot! Way to go!`
+                finalResult.innerHTML = `That's more like it!! Now it's time to score! Choose where do you want to shoot!`
+            }
+            console.log(`Veto: ${kick} Torjunta: ${diveDirection}`);
+            console.log("Ja veto menee...");
+            printBall(kick);
+            console.log("Ja maalivahti menee...");
+            printGoalkeeper(diveDirection);
+            console.log("Ei maalia. Maalivahti torjui vedon!");
+            shotDirection.innerHTML = `Shot direction: ${kick}, Dive direction: ${diveDirection}`;
+            scoreInfo.innerHTML = `Score: ${team1} ${team1Score} - ${team2} ${team2Score}`
+        }
+        if (rounds >= numberRounds && team1Score === team2Score && team1Turn === team2Turn) {
+            console.log("Tasapeli! Siirrytään äkkikuolema -kierroksiin!");
+            finalResult.innerHTML = `Draw! Now we move to sudden death rounds!`
+            numberRounds++;
+        }
+    })
+})
+
+function makeSelection(selection) {
+    console.log(selection)
+}
 
 function dive() {
     const number = Math.floor(Math.random() * 2) + 1;
@@ -115,110 +261,6 @@ function printGoalkeeper(goalkeeper) {
         console.log("|        //     |");
     }
 }
-
-function penalties(team) {
-    console.log("-----------------");
-    console.log("|     _ o _     |");
-    console.log("|       |       |");
-    console.log("|      / \\      |");
-
-    let numberRounds = 5;
-    const team1 = 'Suomi';
-    const team2 = team;
-    let gameContinues = true;
-    let team1Score = 0;
-    let team2Score = 0;
-    let team1Turn = 0;
-    let team2Turn = 0;
-    let currentTeam = team2;
-    let rounds = 0;
-
-    while (gameContinues) {
-        if (Math.abs(team1Score - team2Score) > (numberRounds - rounds) && team1Turn === team2Turn) {
-            gameContinues = false;
-        } else {
-            if (team1Turn === team2Turn) {
-                rounds += 1;
-                console.log(`KIERROS ${rounds}`);
-                roundInfo.innerHTML = `Round: ${rounds}`;
-            }
-            console.log(`${team1} on tehnyt ${team1Score} maalia, ${team2} on tehnyt ${team2Score}.`);
-            scoreInfo.innerHTML = `Score: ${team1} ${team1Score} - ${team2} ${team2Score}`
-            if (currentTeam === team1) {
-                currentTeam = team2;
-                console.log(`Nyt on ${currentTeam} joukkueen vuoro!`);
-                attemptInfo.innerHTML = `Turn: ${currentTeam}`
-                team2Turn += 1;
-            } else {
-                currentTeam = team1;
-                console.log(`Nyt on ${currentTeam} joukkueen vuoro`);
-                attemptInfo.innerHTML = `Turn: ${currentTeam}`
-                team1Turn += 1;
-            }
-
-            let kick;
-            if (currentTeam === team1) {
-                kick = parseInt(prompt("Kumpaan suuntaan haluat vetää? (1: vasemmalle/2: oikealle)\n"));
-                // kick = 1;
-            } else {
-                kick = Math.floor(Math.random() * 2) + 1;
-            }
-
-            let diveDirection;
-            if (currentTeam === team2) {
-                diveDirection = parseInt(prompt("Minne maalivahti hyppää? (1: vasemmalle/2: oikealle)\n"));
-                // diveDirection = 2;
-            } else {
-                diveDirection = dive();
-            }
-
-            if (goal(kick, diveDirection)) {
-                console.log(`Veto: ${kick} Torjunta: ${diveDirection}`);
-                console.log("Ja veto menee...");
-                printBall(kick);
-                console.log("Ja maalivahti menee...");
-                printGoalkeeper(diveDirection);
-                console.log(`${currentTeam} sai maalin!`);
-                shotDirection.innerHTML = `Shot direction: ${kick}, Dive direction: ${diveDirection}`;
-                resultInfo.innerHTML = `Goal! ${currentTeam} scored!`
-
-                if (currentTeam === team1) {
-                    team1Score += 1;
-                } else {
-                    team2Score += 1;
-                }
-            } else {
-                console.log(`Veto: ${kick} Torjunta: ${diveDirection}`);
-                console.log("Ja veto menee...");
-                printBall(kick);
-                console.log("Ja maalivahti menee...");
-                printGoalkeeper(diveDirection);
-                console.log("Ei maalia. Maalivahti torjui vedon!");
-                shotDirection.innerHTML = `Shot direction: ${kick}, Dive direction: ${diveDirection}`;
-                resultInfo.innerHTML = `No goal! The keeper saved the shot!`
-            }
-
-            if (rounds >= numberRounds && team1Score === team2Score && team1Turn === team2Turn) {
-                console.log("Tasapeli! Siirrytään äkkikuolema -kierroksiin!");
-                finalResult.innerHTML = `Draw! Now we move to sudden death rounds!`
-                numberRounds++;
-            }
-        }
-    }
-
-    console.log(`${team1} yritykset: ${team1Turn}`);
-    console.log(`${team2} yritykset: ${team2Turn}`);
-    console.log(`Peli päättyi! ${team1} teki ${team1Score} ja ${team2} teki ${team2Score}`);
-    finalResult.innerHTML = `Game over! The Score is ${team1} ${team1Score} - ${team2} ${team2Score}`;
-    if (team1Score > team2Score) {
-        return team1;
-    } else if (team2Score > team1Score) {
-        console.log(`Ottelun voittaja on ${team2}!`);
-        return team2;
-    }
-}
-
-
 document.addEventListener('DOMContentLoaded', function () {
     const startButton = document.getElementById('start-button');
 
@@ -238,8 +280,8 @@ document.addEventListener('DOMContentLoaded', function () {
         button2.classList.remove('hide');
         p1.classList.add('hide');
         p2.classList.remove('hide');
-
-        // Start the penalty shootout when the button is clicked
-        penalties('TeamB');
     });
 });
+
+
+
