@@ -171,10 +171,12 @@ selectionButtons.forEach(selectionButton => {
                 img.src = '../img/penalty-goal.gif'
                 resultInfo.innerHTML = `Yes!! You scored a goal! The keeper had no chance!`
                 finalResult.innerHTML = `Now It's time to save the penalty shot! Choose where do you want to dive!`
+                team1Score += 1;
             } else {
                 img.src = '../img/penalty-allowed.gif'
                 resultInfo.innerHTML = `The opposition scored. You almost had it!`
                 finalResult.innerHTML = `Now it's time to pay them back! Choose where do you want to shoot!`
+                team2Score += 1;
             }
             console.log(`Veto: ${kick} Torjunta: ${diveDirection}`);
             console.log("Ja veto menee...");
@@ -185,11 +187,11 @@ selectionButtons.forEach(selectionButton => {
             shotDirection.innerHTML = `Shot direction: ${kick}, Dive direction: ${diveDirection}`;
             scoreInfo.innerHTML = `Score: ${team1} ${team1Score} - ${team2} ${team2Score}`
 
-            if (currentTeam === team1) {
-                team1Score += 1;
-            } else {
-                team2Score += 1;
-            }
+            // if (currentTeam === team1) {
+            //     team1Score += 1;
+            // } else {
+            //     team2Score += 1;
+            // }
         } else {
             if (currentTeam === team1) {
                 img.src = '../img/penalty-miss.gif'
