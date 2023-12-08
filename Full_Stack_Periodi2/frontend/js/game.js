@@ -8,6 +8,13 @@ const airportMarkers = L.featureGroup().addTo(map);
 const blueIcon = L.divIcon({className: 'blue-icon'});
 const greenIcon = L.divIcon({className: 'green-icon'});
 
+let playerName;
+const games = 7;
+let gamesPlayed = 0;
+let travelTimes = 0;
+let co2_consumed = 0;
+let distance = 0;
+
 const startingPointIcon = L.icon({
     iconUrl: '../icons/starting_point.png', // Replace with the path to your icon image
     iconSize: [41, 41], // Size of the icon. This is the default size for Leaflet's marker icon.
@@ -133,9 +140,11 @@ async function travelToAirport(airport, co2_emissions, dist){
     if(conf) {
         distance += dist;
         co2_consumed += co2_emissions;
+        console.log(co2_consumed);
+        console.log(distance);
 
-        distanceElement.innerText = `${distance}KM`;
-        CO2Element.innerText = `${Math.floor(co2_consumed)}KG`;
+        // distanceElement.innerText = `${distance}KM`;
+        // CO2Element.innerText = `${Math.floor(co2_consumed)}KG`;
 
         airportMarkers.clearLayers();
 
@@ -147,7 +156,7 @@ async function travelToAirport(airport, co2_emissions, dist){
 
         map.flyTo([airport.latitude_deg, airport.longitude_deg]);
 
-        await getClosestAirports(airport);
+        await getClosestFields(airport);
         // await showQuestion();
         // await getCurrentAirportWeather(airport);
     }
