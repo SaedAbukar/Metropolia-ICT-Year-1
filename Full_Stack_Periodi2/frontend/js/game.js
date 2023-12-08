@@ -195,6 +195,7 @@ async function travelToAirport(field, co2_emissions, dist){
             const oppConf = confirm(`You found an opponent! Get ready for the match against ${field.opponent['name']}!`)
             if (oppConf) {
                 penaltyImg.classList.remove('hide')
+                penStartDiv.classList.remove('hide');
                 startButton.classList.remove('hide');
                 p1.classList.remove('hide');
                 // p2.classList.add('hide');

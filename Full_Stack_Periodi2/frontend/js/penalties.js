@@ -147,6 +147,12 @@ let rounds = 0;
 function resetPenaltyGame () {
     setTimeout(function () {
         gameContinues = true;
+        team1Score = 0;
+        team2Score = 0;
+        team1Turn = 0;
+        team2Turn = 0;
+        currentTeam = team2;
+        rounds = 0;
         roundInfo.innerHTML = 'Round: 0';
         scoreInfo.innerHTML = 'Score: 0 - 0';
         attemptInfo.innerHTML = 'Turn: -';
@@ -154,7 +160,8 @@ function resetPenaltyGame () {
         resultInfo.innerHTML = 'I might cheer you on...';
         finalResult.innerHTML = 'The game will start when you pick your side!';
 
-        startButton.classList.remove('hide');
+        penStartDiv.classList.add('hide');
+        startButton.classList.add('hide');
         divpen1.classList.add('hide');
         divpen1.classList.remove('penalty-info');
         divpen2.classList.add('hide');
@@ -164,8 +171,9 @@ function resetPenaltyGame () {
         button1.classList.add('hide');
         button2.classList.add('hide');
         p1.classList.remove('hide');
+        img.src = "../img/Suomen-MM-kisa-peli.jpg";
         // p2.classList.add('hide');
-                }, 9000);}
+                }, 5000);}
 
 
 
@@ -177,22 +185,24 @@ selectionButtons.forEach(selectionButton => {
         }
         if (Math.abs(team1Score - team2Score) > (numberRounds - rounds) && team1Turn === team2Turn) {
             gameContinues = false;
-            resetPenaltyGame();
             console.log(`${team1} yritykset: ${team1Turn}`);
             console.log(`${team2} yritykset: ${team2Turn}`);
             console.log(`Peli päättyi! ${team1} teki ${team1Score} ja ${team2} teki ${team2Score}`);
-            finalResult.innerHTML = `Game over! The Score is ${team1} ${team1Score} - ${team2} ${team2Score}`;
+            finalResult.innerHTML = `Game over! The Score is ${team1} ${team1Score} - ${team2} ${team2Score}.`;
+            resetPenaltyGame();
             if (team1Score > team2Score) {
                 gamesPlayed++;
                 gamesElement.innerText = `${gamesPlayed}`;
                 wins++;
                 winsElement.innerText = `${wins}`
-                finalResult.innerHTML = ` You won the game against ${team2}! Final score: ${team1Score} - ${team2Score}`
+                finalResult.innerHTML = ` You won the game against ${team2}! Final score: ${team1Score} - ${team2Score}. This window will close soon. Continue your search for opponents!`
+                resetPenaltyGame();
                 return team1;
             } else if (team2Score > team1Score) {
                 gamesPlayed++;
                 gamesElement.innerText = `${gamesPlayed}`;
-                finalResult.innerHTML = ` You lost the game against ${team2}... Final score: ${team1Score} - ${team2Score}`
+                finalResult.innerHTML = ` You lost the game against ${team2}... Final score: ${team1Score} - ${team2Score}. This window will close soon. Continue your search for opponents!`
+                resetPenaltyGame();
                 return team2;
             }
         }
