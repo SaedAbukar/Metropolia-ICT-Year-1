@@ -253,6 +253,27 @@ figure {
     display: none;
 }
 
+.map-stats {
+    display: flex;
+}
+
+#stats-box {
+    height: 60vh;
+    text-align: left;
+    vertical-align: center;
+    justify-content: space-around;
+    margin: auto;
+    padding: 1rem;
+    border: 1px solid white;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+#stats-box h3 {
+    margin: auto;
+    padding: 0.5rem;
+}
+
 .button {
     display: flex;
     justify-content: space-evenly;

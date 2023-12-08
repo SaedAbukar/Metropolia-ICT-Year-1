@@ -8,12 +8,15 @@ const airportMarkers = L.featureGroup().addTo(map);
 const blueIcon = L.divIcon({className: 'blue-icon'});
 const greenIcon = L.divIcon({className: 'green-icon'});
 
+const pointsElement = document.querySelector('.stats-points-target');
+const CO2Element = document.querySelector('.stats-co2-target');
+const distanceElement = document.querySelector('.stats-distance-target');
+const travelTimesElement = document.querySelector('.stats-travel-target');
+
 let playerName;
-const games = 7;
-let gamesPlayed = 0;
-let travelTimes = 0;
 let co2_consumed = 0;
 let distance = 0;
+let travelTimes = 0;
 
 const startingPointIcon = L.icon({
     iconUrl: '../icons/starting_point.png', // Replace with the path to your icon image
@@ -23,12 +26,18 @@ const startingPointIcon = L.icon({
 });
 
 document.addEventListener('DOMContentLoaded', async (e) => {
+    penaltyImg.classList.add('hide')
+    startButton.classList.add('hide');
+    p1.classList.add('hide');
+    // p2.classList.remove('hide');
 
-    const fields = await getFields();
-    const opponents = await getOpponents();
+    const fieldsBase = await getFields();
+    const opponentsBase = await getOpponents();
+
+
     const currentField =  await setStartingField();
-    console.log(fields);
-    console.log(opponents);
+    // console.log(fields);
+    // console.log(opponents);
     console.log(currentField);
     // const closestFields = await getClosestFields();
     // console.log(closestFields);
@@ -104,6 +113,24 @@ async function getClosestFields(currentField){
     const response = await fetch(`http://127.0.0.1:3000/fields/closest/${lat}/${lon}`);
     const fields = await response.json();
 
+    function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+    const opponents = await getOpponents();
+
+    // Shuffle the opponents array
+    const shuffledOpponents = shuffleArray([...opponents]);
+
+    const numberOfFieldsToAssign = 7;
+
+    for (let i = 0; i < numberOfFieldsToAssign && i < shuffledOpponents.length; i++) {
+        fields[i].opponent = shuffledOpponents[i];
+}
+
     for (const field of fields) {
         if (currentField.name !== field.name){
             const co2_emissions = calculateCO2(field.Distance_KM);
@@ -131,34 +158,56 @@ async function getClosestFields(currentField){
             airportMarkers.addLayer(marker);
         }
     }
+    console.log(fields);
     return fields;
 }
 
-async function travelToAirport(airport, co2_emissions, dist){
-    const conf = confirm(`Do you want to travel to ${airport.name}`);
+async function travelToAirport(field, co2_emissions, dist){
+    const conf = confirm(`Do you want to travel to ${field.name}`);
 
     if(conf) {
         distance += dist;
         co2_consumed += co2_emissions;
+        travelTimes++
         console.log(co2_consumed);
         console.log(distance);
+        console.log(travelTimes);
 
-        // distanceElement.innerText = `${distance}KM`;
-        // CO2Element.innerText = `${Math.floor(co2_consumed)}KG`;
+        distanceElement.innerText = `${distance}KM`;
+        CO2Element.innerText = `${Math.floor(co2_consumed)}KG`;
+        travelTimesElement.innerText = `${travelTimes}`;
 
         airportMarkers.clearLayers();
 
-        const marker = L.marker([airport.latitude_deg, airport.longitude_deg], {'icon': startingPointIcon}).
+        const marker = L.marker([field.latitude_deg, field.longitude_deg], {'icon': startingPointIcon}).
             addTo(map).
-            bindPopup(airport.name).
+            bindPopup(field.name).
             openPopup();
         airportMarkers.addLayer(marker);
 
-        map.flyTo([airport.latitude_deg, airport.longitude_deg]);
+        map.flyTo([field.latitude_deg, field.longitude_deg]);
 
-        await getClosestFields(airport);
+        await getClosestFields(field);
         // await showQuestion();
         // await getCurrentAirportWeather(airport);
+        console.log(field);
+        if (field.hasOwnProperty('opponent')) {
+            const oppConf = confirm(`You found an opponent! Get ready for the match against ${field.opponent['name']}!`)
+            if (oppConf) {
+                penaltyImg.classList.remove('hide')
+                startButton.classList.remove('hide');
+                p1.classList.remove('hide');
+                // p2.classList.add('hide');
+            }else{
+            const oppConf2 = confirm(`Stop fooling around and get ready for the game! If you are scared then just close the tap and call it a day...`);
+            penaltyImg.classList.remove('hide')
+            startButton.classList.remove('hide');
+            p1.classList.remove('hide');
+            // p2.classList.add('hide');
+            }
+        }else{
+            alert(`There was no opponent in this field. Continue the search and travel to next field... `);
+        }
     }
 }
 
@@ -185,5 +234,3 @@ async function getOpponents() {
 async function updateLocation(icao, p_range, u_points, g_id) {
   const response = await fetch(`http://127.0.0.1:3000/update_location/${icao}/${p_range}/${u_points}/${g_id}`)
 }
-
-

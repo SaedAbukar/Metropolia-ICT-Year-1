@@ -24,23 +24,20 @@
     </header>
     <main>
         <section>
-            <div id="map"></div>
-<!--                <form id="single">-->
-<!--                    <input name="icao" placeholder="Input airport icao code">-->
-<!--                    <input type="submit" value="Search">-->
-<!--                </form>-->
-<!--                <form id="list-selection">-->
-<!--                &lt;!&ndash;    <select id="continents">&ndash;&gt;-->
-<!--                &lt;!&ndash;        <option>Select Continent</option>&ndash;&gt;-->
-<!--                &lt;!&ndash;    </select>&ndash;&gt;-->
-<!--                    <select id="countries">-->
-<!--                        <option>Select Country</option>-->
-<!--                    </select>-->
-<!--                    <select id="airports">-->
-<!--                        <option>Select Airport</option>-->
-<!--                    </select>-->
-<!--                </form>-->
-            <div id="actual-map">
+            <div class="map-stats">
+                <div id="map"></div>
+                    <div id="stats-box">
+                    <h3 id="stats-text">Stats</h3>
+                    <h4 class="stat-points">Points: <span class="stats-points-target">0</span></h4>
+                    <h4 class="stat-co2">CO2 usage: <span class="stats-co2-target">0KG</span></h4>
+                    <h4 class="stat-distance">Distance: <span class="stats-distance-target">0KM</span></h4>
+                    <h4 class="stat-streak">Games: <span class="stats-games-target">0</span></h4>
+                    <h4 class="stat-streak">Travel times: <span class="stats-travel-target">0</span></h4>
+                    <h4 class="stat-streak">Wins: <span class="stats-wins-target"></span></h4>
+    </div>
+            </div>
+            <div id="penalty-start">
+            <div id="penalty-img">
                 <figure>
                     <img id="start-img" src="../img/Suomen-MM-kisa-peli.jpg"/>
                 </figure>
@@ -48,6 +45,7 @@
             <p id="p1">Welcome to Finlands World Cup penalty shootout game! Press the button to start the game!</p>
             <div>
                 <button id="start-button">Start the game</button>
+            </div>
             </div>
 <!--            <div class="button">-->
 <!--                <button id="button1" class="hide" value="1">1</button>-->
