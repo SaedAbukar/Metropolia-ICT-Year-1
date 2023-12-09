@@ -172,8 +172,9 @@ function resetPenaltyGame () {
         button2.classList.add('hide');
         p1.classList.remove('hide');
         img.src = "../img/Suomen-MM-kisa-peli.jpg";
+        Map.classList.remove('hide');
         // p2.classList.add('hide');
-                }, 5000);}
+                }, 4000);}
 
 
 

@@ -258,7 +258,7 @@ figure {
 }
 
 #stats-box {
-    height: 60vh;
+    height: 65%;
     text-align: left;
     vertical-align: center;
     justify-content: space-around;
@@ -272,6 +272,18 @@ figure {
 #stats-box h3 {
     margin: auto;
     padding: 0.5rem;
+}
+
+#weather-box {
+    height: 35%;
+    text-align: left;
+    vertical-align: center;
+    justify-content: space-around;
+    margin: auto;
+    padding: 1rem;
+    border: 1px solid white;
+    border-radius: 8px;
+    box-sizing: border-box;
 }
 
 .button {

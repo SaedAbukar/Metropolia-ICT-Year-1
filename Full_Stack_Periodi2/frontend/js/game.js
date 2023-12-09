@@ -4,6 +4,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 const airportMarkers = L.featureGroup().addTo(map);
+const visitedFields = [];
 
 const blueIcon = L.divIcon({className: 'blue-icon'});
 const greenIcon = L.divIcon({className: 'green-icon'});
@@ -12,6 +13,7 @@ const pointsElement = document.querySelector('.stats-points-target');
 const CO2Element = document.querySelector('.stats-co2-target');
 const distanceElement = document.querySelector('.stats-distance-target');
 const travelTimesElement = document.querySelector('.stats-travel-target');
+const MAP = document.querySelector('.map');
 
 let playerName;
 let co2_consumed = 0;
@@ -19,9 +21,9 @@ let distance = 0;
 let travelTimes = 0;
 
 const startingPointIcon = L.icon({
-    iconUrl: '../icons/starting_point.png', // Replace with the path to your icon image
-    iconSize: [41, 41], // Size of the icon. This is the default size for Leaflet's marker icon.
-    iconAnchor: [12, 41], // Point of the icon which will correspond to marker's location.
+    iconUrl: '../icons/beligol.jpg', // Replace with the path to your icon image
+    iconSize: [61, 61], // Size of the icon. This is the default size for Leaflet's marker icon.
+    iconAnchor: [25, 38], // Point of the icon which will correspond to marker's location.
     popupAnchor: [8, -41] // Point from which the popup should open relative to the iconAnchor.
 });
 
@@ -51,10 +53,6 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     // console.log(current_airport);
     // console.log(closestFields);
 });
-
-// function kelvinToCelcius(kelvin){
-//     return Math.floor(kelvin - 273.15);
-// }
 
 
 async function getFields() {
@@ -104,6 +102,10 @@ async function setStartingField() {
 
 
 async function getClosestFields(currentField){
+    if (visitedFields.some(item => item === currentField)) {
+        console.log(visitedFields);
+        console.log('The object is in the array');
+    }
     if (!currentField) {
     console.error("Current field is undefined");
     return; // or handle the error appropriately
@@ -166,6 +168,8 @@ async function travelToAirport(field, co2_emissions, dist){
     const conf = confirm(`Do you want to travel to ${field.name}`);
 
     if(conf) {
+        visitedFields.push(field);
+        console.log(visitedFields);
         distance += dist;
         co2_consumed += co2_emissions;
         travelTimes++
@@ -188,8 +192,7 @@ async function travelToAirport(field, co2_emissions, dist){
         map.flyTo([field.latitude_deg, field.longitude_deg]);
 
         await getClosestFields(field);
-        // await showQuestion();
-        // await getCurrentAirportWeather(airport);
+        await getCurrentFieldWeather(field);
         console.log(field);
         if (field.hasOwnProperty('opponent')) {
             const oppConf = confirm(`You found an opponent! Get ready for the match against ${field.opponent['name']}!`)
@@ -198,6 +201,7 @@ async function travelToAirport(field, co2_emissions, dist){
                 penStartDiv.classList.remove('hide');
                 startButton.classList.remove('hide');
                 p1.classList.remove('hide');
+                Map.classList.add('hide');
                 // p2.classList.add('hide');
             }else{
             const oppConf2 = confirm(`Stop fooling around and get ready for the game! If you are scared then just close the tap and call it a day...`);
@@ -234,4 +238,26 @@ async function getOpponents() {
 
 async function updateLocation(icao, p_range, u_points, g_id) {
   const response = await fetch(`http://127.0.0.1:3000/update_location/${icao}/${p_range}/${u_points}/${g_id}`)
+}
+
+const tempElement = document.querySelector('.weather-temp-target');
+const weatherImgElement = document.querySelector('.weather-icon-target');
+async function getCurrentFieldWeather(current_airport) {
+    const api_key = 'f806590ff13e2499734e34a745c8ee63';
+
+    const lat = current_airport.latitude_deg;
+    const lon = current_airport.longitude_deg;
+
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${api_key}`);
+    const weather = await response.json();
+
+    const icon = weather.weather[0].icon;
+    const temp = `${kelvinToCelcius(weather.main.temp)}°C`;
+
+    tempElement.innerText = temp;
+    weatherImgElement.src = `https://openweathermap.org/img/wn/${icon}.png`;
+}
+
+function kelvinToCelcius(kelvin){
+    return Math.floor(kelvin - 273.15);
 }
