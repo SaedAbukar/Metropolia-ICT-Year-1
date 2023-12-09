@@ -147,6 +147,7 @@ let wins = 0;
 
 function checkGameStatus() {
     if (gamesPlayed === TOTALGAMES) {
+        gameContinues = true;
         penStartDiv.classList.add('hide');
         divpen1.classList.add('hide');
         divpen2.classList.add('hide');
@@ -170,6 +171,7 @@ function checkGameStatus() {
             finalResult.innerText = `Congratulations! You are a World Champion!!`;
         }
     }
+    console.log(gameContinues);
 }
 
 console.log(stageElement.innerText = `${stages[wins + 1]}`);
