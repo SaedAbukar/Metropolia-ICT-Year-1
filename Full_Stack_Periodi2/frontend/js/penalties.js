@@ -103,33 +103,76 @@ const TOTALGAMES = 7;
 let gamesPlayed = 0;
 let wins = 0;
 
-if(gamesPlayed === TOTALGAMES) {
-    penStartDiv.classList.add('hide');
-    divpen1.classList.add('hide');
-    divpen2.classList.add('hide');
-    divpen3.classList.remove('hide')
-    if (wins < 2 && gamesPlayed === 3) {
+// function checkGameStatus() {
+//     if(gamesPlayed === TOTALGAMES) {
+//     penStartDiv.classList.add('hide');
+//     divpen1.classList.add('hide');
+//     divpen2.classList.add('hide');
+//     divpen3.classList.remove('hide')
+//     if (wins < 2 && gamesPlayed === 3) {
+//         penStartDiv.classList.add('hide');
+//         divpen1.classList.add('hide');
+//         divpen2.classList.add('hide');
+//         divpen3.classList.remove('hide');
+//         stageElement.innerText = `${stages[wins + 1]}`;
+//         finalResult.innerText = `You lost 2 games out of 3. You didnt make it out the group stage... Better luck next time!`
+//     }
+//     if (wins >= 2 && gamesPlayed === 3) {
+//         penStartDiv.classList.add('hide');
+//         divpen1.classList.add('hide');
+//         divpen2.classList.add('hide');
+//         divpen3.classList.remove('hide');
+//         stageElement.innerText = `${stages[wins + 1]}`;
+//         finalResult.innerText = `Congrats!! You made it to the knockout-stages!`
+//     }
+//     if (wins > 3 && wins !== TOTALGAMES) {
+//         penStartDiv.classList.add('hide');
+//         divpen1.classList.add('hide');
+//         divpen2.classList.add('hide');
+//         divpen3.classList.remove('hide');
+//         stageElement.innerText = `${stages[wins + 1]}`;
+//         finalResult.innerText = `You lost in the ${stages[wins + 1]} stage.. Valiant effort! Keep your head up!`
+//     }
+//     if (wins === 7) {
+//         penStartDiv.classList.add('hide');
+//         divpen1.classList.add('hide');
+//         divpen2.classList.add('hide');
+//         divpen3.classList.remove('hide');
+//         stageElement.innerText = `${stages[wins + 1]}`;
+//         finalResult.innerText = `Congratulations! You are a World Champion!!`
+//     }
+// }
+// }
+
+
+function checkGameStatus() {
+    if (gamesPlayed === TOTALGAMES) {
         penStartDiv.classList.add('hide');
         divpen1.classList.add('hide');
         divpen2.classList.add('hide');
         divpen3.classList.remove('hide');
-        finalResult.innerText = `You lost 2 games out of 3. You didnt make it out the group stage... Better luck next time!`
-    }
-    if (wins > 3 && wins !== TOTALGAMES) {
-        penStartDiv.classList.add('hide');
-        divpen1.classList.add('hide');
-        divpen2.classList.add('hide');
-        divpen3.classList.remove('hide');
-        finalResult.innerText = `You lost in the ${stages[wins + 1]} stage.. Valiant effort! Keep your head up!`
-    }
-    if (wins === 7) {
-        penStartDiv.classList.add('hide');
-        divpen1.classList.add('hide');
-        divpen2.classList.add('hide');
-        divpen3.classList.remove('hide');
-        finalResult.innerText = `Congratulations! You are a World Champion!!`
+
+        stageElement.innerText = stages[wins + 1];
+
+        if (wins < 2 && gamesPlayed === 3) {
+            finalResult.innerText = `You lost 2 games out of 3. You didn't make it out of the group stage... Better luck next time!`;
+            gameContinues = false;
+        } else if (wins >= 2) {
+            finalResult.innerText = `Congrats!! You made it to the knockout stages!`;
+        }
+
+        if (wins > 3 && wins !== TOTALGAMES) {
+            finalResult.innerText = `You lost in the ${stages[wins + 1]} stage. Valiant effort! Keep your head up!`;
+            gameContinues = false;
+        }
+
+        if (wins === 7) {
+            finalResult.innerText = `Congratulations! You are a World Champion!!`;
+        }
     }
 }
+
+console.log(stageElement.innerText = `${stages[wins + 1]}`);
 
 
 
@@ -172,7 +215,7 @@ function resetPenaltyGame () {
         button2.classList.add('hide');
         p1.classList.remove('hide');
         img.src = "../img/Suomen-MM-kisa-peli.jpg";
-        Map.classList.remove('hide');
+        // Map.classList.remove('hide');
         // p2.classList.add('hide');
                 }, 4000);}
 
@@ -182,6 +225,7 @@ selectionButtons.forEach(selectionButton => {
     selectionButton.addEventListener('click', e => {
         if (!gameContinues) {
             resetPenaltyGame();
+            checkGameStatus();
             return; // Stop processing clicks if the game is over
         }
         if (Math.abs(team1Score - team2Score) > (numberRounds - rounds) && team1Turn === team2Turn) {
@@ -190,20 +234,19 @@ selectionButtons.forEach(selectionButton => {
             console.log(`${team2} yritykset: ${team2Turn}`);
             console.log(`Peli päättyi! ${team1} teki ${team1Score} ja ${team2} teki ${team2Score}`);
             finalResult.innerHTML = `Game over! The Score is ${team1} ${team1Score} - ${team2} ${team2Score}.`;
-            resetPenaltyGame();
+            // resetPenaltyGame();
+            checkGameStatus();
             if (team1Score > team2Score) {
                 gamesPlayed++;
                 gamesElement.innerText = `${gamesPlayed}`;
                 wins++;
-                winsElement.innerText = `${wins}`
-                finalResult.innerHTML = ` You won the game against ${team2}! Final score: ${team1Score} - ${team2Score}. This window will close soon. Continue your search for opponents!`
-                resetPenaltyGame();
+                winsElement.innerText = `${wins}`;
+                finalResult.innerHTML = ` You won the game against ${team2}! Final score: ${team1Score} - ${team2Score}. This window will close soon. Continue your search for opponents!`;
                 return team1;
             } else if (team2Score > team1Score) {
                 gamesPlayed++;
                 gamesElement.innerText = `${gamesPlayed}`;
-                finalResult.innerHTML = ` You lost the game against ${team2}... Final score: ${team1Score} - ${team2Score}. This window will close soon. Continue your search for opponents!`
-                resetPenaltyGame();
+                finalResult.innerHTML = ` You lost the game against ${team2}... Final score: ${team1Score} - ${team2Score}. This window will close soon. Continue your search for opponents!`;
                 return team2;
             }
         }

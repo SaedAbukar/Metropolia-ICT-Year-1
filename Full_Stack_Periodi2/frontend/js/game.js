@@ -9,7 +9,7 @@ const visitedFields = [];
 const blueIcon = L.divIcon({className: 'blue-icon'});
 const greenIcon = L.divIcon({className: 'green-icon'});
 
-const pointsElement = document.querySelector('.stats-points-target');
+const stageElement = document.querySelector('.stats-stage-target');
 const CO2Element = document.querySelector('.stats-co2-target');
 const distanceElement = document.querySelector('.stats-distance-target');
 const travelTimesElement = document.querySelector('.stats-travel-target');
@@ -201,7 +201,7 @@ async function travelToAirport(field, co2_emissions, dist){
                 penStartDiv.classList.remove('hide');
                 startButton.classList.remove('hide');
                 p1.classList.remove('hide');
-                Map.classList.add('hide');
+                // Map.classList.add('hide');
                 // p2.classList.add('hide');
             }else{
             const oppConf2 = confirm(`Stop fooling around and get ready for the game! If you are scared then just close the tap and call it a day...`);
