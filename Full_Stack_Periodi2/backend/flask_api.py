@@ -11,50 +11,6 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
-# @app.route('/continents')
-# def continents():
-#     sql = f'''SELECT DISTINCT continent
-#               FROM country'''
-#     cursor = db.get_conn().cursor(dictionary=True)
-#     cursor.execute(sql)
-#     result = cursor.fetchall()
-#     return json.dumps(result)
-# #
-# #
-# @app.route('/countries/<continent>')
-# def countries_by_continent(continent):
-#     sql = f'''SELECT iso_country, name
-#               FROM country
-#               WHERE continent = %s'''
-#     cursor = db.get_conn().cursor(dictionary=True)
-#     cursor.execute(sql, (continent,))
-#     result = cursor.fetchall()
-#     return json.dumps(result)
-#
-#
-# @app.route('/airports/<country>')
-# def airports_by_country(country):
-#     sql = f'''SELECT ident, name, latitude_deg, longitude_deg
-#               FROM wc_fields
-#               WHERE iso_country = %s'''
-#     cursor = db.get_conn().cursor(dictionary=True)
-#     cursor.execute(sql, (country,))
-#     result = cursor.fetchall()
-#     return json.dumps(result)
-#
-#
-# @app.route('/airport/<icao>')
-# def airport(icao):
-#     sql = f'''SELECT name, latitude_deg, longitude_deg
-#               FROM airport
-#               WHERE ident=%s'''
-#     cursor = db.get_conn().cursor(dictionary=True)
-#     cursor.execute(sql, (icao,))
-#     result = cursor.fetchone()
-#     return json.dumps(result)
-
-
-
 @app.route('/get_fields')
 def get_fields():
     sql = """SELECT * from wc_fields ORDER BY RAND();"""
@@ -136,27 +92,8 @@ def check_goal(g_id, cur_airport):
     if result is None:
         return False
     return json.dumps(result)
-#
-#
-# # laske etäisyys
-# def calculate_distance(current, target):
-#     start = get_field_info(current)
-#     end = get_field_info(target)
-#     return distance.distance((start['latitude_deg'], start['longitude_deg']),
-#                              (end['latitude_deg'], end['longitude_deg'])).km
-# #
-# #
-# # # get airports in range
-# @app.route('/fields_in_range/<icao>/<a_fields>/<p_range>')
-# def fields_in_range(icao, a_fields, p_range):
-#     in_range = []
-#     for a_fields in a_fields:
-#         dist = calculate_distance(icao, a_fields['ident'])
-#         if dist <= p_range and not dist == 0:
-#             in_range.append(a_fields)
-#     return json.dumps(in_range)
-#
-#
+
+
 # päivitä pelaajan uusi sijainti
 @app.route('/update_location/<icao>/<p_range>/<u_points>/<g_id>')
 def update_location(icao, p_range, u_points, g_id):
