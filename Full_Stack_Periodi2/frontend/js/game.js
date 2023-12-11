@@ -1,4 +1,11 @@
 'use strict';
+
+// TODO Pitää saada peli loppumaan kun pelaaja voittaa tai häviää.
+// TODO Pitää estää pelaajaa matkustasmasta toiselle kentälle kesken pilkkukisan.
+// TODO Pitää estää pelaajaa matkustamasta kentille missä on käynyt.
+// TODO Pitää saada vastustajan nimi näkymään pilkkukisassa.
+
+
 const map = L.map('map').setView([60.23, 24.74],5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -166,6 +173,9 @@ async function getClosestFields(currentField){
 }
 
 async function travelToAirport(field, co2_emissions, dist){
+    if (visitedFields.includes(field)) {
+        alert(`You have already visited this field. Travel to another field!`)
+    } else {
     const conf = confirm(`Do you want to travel to ${field.name}`);
 
     if(conf) {
@@ -214,7 +224,7 @@ async function travelToAirport(field, co2_emissions, dist){
         }else{
             alert(`There was no opponent in this field. Continue the search and travel to next field... `);
         }
-    }
+    }}
 }
 
 function calculateCO2(distance) {

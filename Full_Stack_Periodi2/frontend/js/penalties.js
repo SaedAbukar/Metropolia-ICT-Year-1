@@ -114,7 +114,7 @@ function checkGameStatus() {
             divpen1.classList.add('hide');
             divpen2.classList.add('hide');
             divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins + 1]}`;
+            stageElement.innerText = `${stages[wins - 1]}`;
             finalResult.innerText = `You lost 2 games out of 3. You didnt make it out the group stage... Better luck next time!`
         }
         if (wins >= 2 && gamesPlayed === 3) {
@@ -122,7 +122,7 @@ function checkGameStatus() {
             divpen1.classList.add('hide');
             divpen2.classList.add('hide');
             divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins + 1]}`;
+            stageElement.innerText = `${stages[wins - 1]}`;
             finalResult.innerText = `Congrats!! You made it to the knockout-stages!`
         }
         if (wins > 3 && wins !== TOTALGAMES) {
@@ -130,23 +130,22 @@ function checkGameStatus() {
             divpen1.classList.add('hide');
             divpen2.classList.add('hide');
             divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins + 1]}`;
-            finalResult.innerText = `You lost in the ${stages[wins +
-            1]} stage.. Valiant effort! Keep your head up!`
+            stageElement.innerText = `${stages[wins - 1]}`;
+            finalResult.innerText = `You lost in the ${stages[wins - 1]} stage.. Valiant effort! Keep your head up!`
         }
         if (wins === 7) {
             penStartDiv.classList.add('hide');
             divpen1.classList.add('hide');
             divpen2.classList.add('hide');
             divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins + 1]}`;
+            stageElement.innerText = `${stages[wins - 1]}`;
             finalResult.innerText = `Congratulations! You are a World Champion!!`
         }
     } console.log(gameContinues)
     return gameContinues
 }
 
-console.log(stageElement.innerText = `${stages[wins + 1]}`);
+console.log(stageElement.innerText = `${stages[wins - 1]}`);
 
 
 
@@ -214,6 +213,7 @@ selectionButtons.forEach(selectionButton => {
             // resetPenaltyGame();
             checkGameStatus();
             if (team1Score > team2Score) {
+                stageElement.innerText = `${stages[wins - 1]}`
                 gamesPlayed++;
                 gamesElement.innerText = `${gamesPlayed}`;
                 wins++;
