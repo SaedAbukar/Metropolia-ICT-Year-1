@@ -92,22 +92,6 @@ async function setStartingField() {
     return airport;
 }
 
-// async function showStartingFields(fields) {
-//
-//   for (const field of fields) {
-//
-//     const marker = L.marker([field.latitude_deg, field.longitude_deg]).
-//         addTo(map).
-//         bindPopup(field.name).
-//         openPopup();
-//     airportMarkers.addLayer(marker);
-//   }
-//
-//   map.flyTo([fields[0].latitude_deg, fields[0].longitude_deg]);
-//
-// }
-
-
 async function getClosestFields(currentField){
     if (visitedFields.some(item => item === currentField)) {
         console.log(visitedFields);
@@ -143,7 +127,11 @@ async function getClosestFields(currentField){
     for (const field of fields) {
         if (currentField.name !== field.name){
             const co2_emissions = calculateCO2(field.Distance_KM);
-            const distance = Math.floor(field.Distance_KM);
+            const distance = Math.floor(field.Distance_KM);7
+
+            // for (const visited of visitedFields) {
+            //
+            // }
 
             const marker = L.marker([field.latitude_deg, field.longitude_deg])
                 .addTo(map)

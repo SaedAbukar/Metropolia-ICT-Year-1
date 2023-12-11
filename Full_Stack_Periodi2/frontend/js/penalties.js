@@ -114,7 +114,7 @@ function checkGameStatus() {
             divpen1.classList.add('hide');
             divpen2.classList.add('hide');
             divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins - 1]}`;
+            stageElement.innerText = `${stages[wins]}`;
             finalResult.innerText = `You lost 2 games out of 3. You didnt make it out the group stage... Better luck next time!`
         }
         if (wins >= 2 && gamesPlayed === 3) {
@@ -122,7 +122,7 @@ function checkGameStatus() {
             divpen1.classList.add('hide');
             divpen2.classList.add('hide');
             divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins - 1]}`;
+            stageElement.innerText = `${stages[wins]}`;
             finalResult.innerText = `Congrats!! You made it to the knockout-stages!`
         }
         if (wins > 3 && wins !== TOTALGAMES) {
@@ -130,8 +130,8 @@ function checkGameStatus() {
             divpen1.classList.add('hide');
             divpen2.classList.add('hide');
             divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins - 1]}`;
-            finalResult.innerText = `You lost in the ${stages[wins - 1]} stage.. Valiant effort! Keep your head up!`
+            stageElement.innerText = `${stages[wins]}`;
+            finalResult.innerText = `You lost in the ${stages[wins]} stage.. Valiant effort! Keep your head up!`
         }
         if (wins === 7) {
             penStartDiv.classList.add('hide');
@@ -151,7 +151,7 @@ console.log(stageElement.innerText = `${stages[wins - 1]}`);
 
 let numberRounds = 5;
 const team1 = 'Suomi';
-const team2 = 'Opponent'
+let team2 = 'Opponent'
 let gameContinues = true;
 let team1Score = 0;
 let team2Score = 0;
@@ -191,8 +191,6 @@ function resetPenaltyGame () {
         p1.classList.remove('hide');
         img.src = "../img/Suomen-MM-kisa-peli.jpg";
         MAP.style.display = 'flex';
-        // Map.classList.remove('hide');
-        // p2.classList.add('hide');
                 }, 2000);
 }
 
@@ -201,7 +199,7 @@ function resetPenaltyGame () {
 selectionButtons.forEach(selectionButton => {
     selectionButton.addEventListener('click', e => {
         if (!gameContinues) {
-            resetPenaltyGame();
+            // resetPenaltyGame();
             checkGameStatus();
             return; // Stop processing clicks if the game is over
         }
@@ -211,10 +209,10 @@ selectionButtons.forEach(selectionButton => {
             console.log(`${team2} yritykset: ${team2Turn}`);
             console.log(`Peli päättyi! ${team1} teki ${team1Score} ja ${team2} teki ${team2Score}`);
             finalResult.innerHTML = `Game over! The Score is ${team1} ${team1Score} - ${team2} ${team2Score}.`;
-            // resetPenaltyGame();
+            resetPenaltyGame();
             checkGameStatus();
             if (team1Score > team2Score) {
-                stageElement.innerText = `${stages[wins - 1]}`
+                stageElement.innerText = `${stages[wins]}`
                 gamesPlayed++;
                 gamesElement.innerText = `${gamesPlayed}`;
                 wins++;
