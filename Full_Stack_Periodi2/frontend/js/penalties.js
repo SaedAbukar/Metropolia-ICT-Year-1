@@ -103,75 +103,47 @@ const TOTALGAMES = 7;
 let gamesPlayed = 0;
 let wins = 0;
 
-// function checkGameStatus() {
-//     if(gamesPlayed === TOTALGAMES) {
-//     penStartDiv.classList.add('hide');
-//     divpen1.classList.add('hide');
-//     divpen2.classList.add('hide');
-//     divpen3.classList.remove('hide')
-//     if (wins < 2 && gamesPlayed === 3) {
-//         penStartDiv.classList.add('hide');
-//         divpen1.classList.add('hide');
-//         divpen2.classList.add('hide');
-//         divpen3.classList.remove('hide');
-//         stageElement.innerText = `${stages[wins + 1]}`;
-//         finalResult.innerText = `You lost 2 games out of 3. You didnt make it out the group stage... Better luck next time!`
-//     }
-//     if (wins >= 2 && gamesPlayed === 3) {
-//         penStartDiv.classList.add('hide');
-//         divpen1.classList.add('hide');
-//         divpen2.classList.add('hide');
-//         divpen3.classList.remove('hide');
-//         stageElement.innerText = `${stages[wins + 1]}`;
-//         finalResult.innerText = `Congrats!! You made it to the knockout-stages!`
-//     }
-//     if (wins > 3 && wins !== TOTALGAMES) {
-//         penStartDiv.classList.add('hide');
-//         divpen1.classList.add('hide');
-//         divpen2.classList.add('hide');
-//         divpen3.classList.remove('hide');
-//         stageElement.innerText = `${stages[wins + 1]}`;
-//         finalResult.innerText = `You lost in the ${stages[wins + 1]} stage.. Valiant effort! Keep your head up!`
-//     }
-//     if (wins === 7) {
-//         penStartDiv.classList.add('hide');
-//         divpen1.classList.add('hide');
-//         divpen2.classList.add('hide');
-//         divpen3.classList.remove('hide');
-//         stageElement.innerText = `${stages[wins + 1]}`;
-//         finalResult.innerText = `Congratulations! You are a World Champion!!`
-//     }
-// }
-// }
-
-
 function checkGameStatus() {
-    if (gamesPlayed === TOTALGAMES) {
-        gameContinues = true;
+    if(gamesPlayed === TOTALGAMES) {
         penStartDiv.classList.add('hide');
         divpen1.classList.add('hide');
         divpen2.classList.add('hide');
-        divpen3.classList.remove('hide');
-
-        stageElement.innerText = stages[wins + 1];
-
+        divpen3.classList.remove('hide')
         if (wins < 2 && gamesPlayed === 3) {
-            finalResult.innerText = `You lost 2 games out of 3. You didn't make it out of the group stage... Better luck next time!`;
-            gameContinues = false;
-        } else if (wins >= 2) {
-            finalResult.innerText = `Congrats!! You made it to the knockout stages!`;
+            penStartDiv.classList.add('hide');
+            divpen1.classList.add('hide');
+            divpen2.classList.add('hide');
+            divpen3.classList.remove('hide');
+            stageElement.innerText = `${stages[wins + 1]}`;
+            finalResult.innerText = `You lost 2 games out of 3. You didnt make it out the group stage... Better luck next time!`
         }
-
+        if (wins >= 2 && gamesPlayed === 3) {
+            penStartDiv.classList.add('hide');
+            divpen1.classList.add('hide');
+            divpen2.classList.add('hide');
+            divpen3.classList.remove('hide');
+            stageElement.innerText = `${stages[wins + 1]}`;
+            finalResult.innerText = `Congrats!! You made it to the knockout-stages!`
+        }
         if (wins > 3 && wins !== TOTALGAMES) {
-            finalResult.innerText = `You lost in the ${stages[wins + 1]} stage. Valiant effort! Keep your head up!`;
-            gameContinues = false;
+            penStartDiv.classList.add('hide');
+            divpen1.classList.add('hide');
+            divpen2.classList.add('hide');
+            divpen3.classList.remove('hide');
+            stageElement.innerText = `${stages[wins + 1]}`;
+            finalResult.innerText = `You lost in the ${stages[wins +
+            1]} stage.. Valiant effort! Keep your head up!`
         }
-
         if (wins === 7) {
-            finalResult.innerText = `Congratulations! You are a World Champion!!`;
+            penStartDiv.classList.add('hide');
+            divpen1.classList.add('hide');
+            divpen2.classList.add('hide');
+            divpen3.classList.remove('hide');
+            stageElement.innerText = `${stages[wins + 1]}`;
+            finalResult.innerText = `Congratulations! You are a World Champion!!`
         }
-    }
-    console.log(gameContinues);
+    } console.log(gameContinues)
+    return gameContinues
 }
 
 console.log(stageElement.innerText = `${stages[wins + 1]}`);
@@ -180,7 +152,7 @@ console.log(stageElement.innerText = `${stages[wins + 1]}`);
 
 let numberRounds = 5;
 const team1 = 'Suomi';
-const team2 = 's';
+const team2 = 'Opponent'
 let gameContinues = true;
 let team1Score = 0;
 let team2Score = 0;
@@ -205,6 +177,8 @@ function resetPenaltyGame () {
         resultInfo.innerHTML = 'I might cheer you on...';
         finalResult.innerHTML = 'The game will start when you pick your side!';
 
+
+        resultInfo.style.backgroundColor = '#d3bbff';
         penStartDiv.classList.add('hide');
         startButton.classList.add('hide');
         divpen1.classList.add('hide');
@@ -219,7 +193,8 @@ function resetPenaltyGame () {
         img.src = "../img/Suomen-MM-kisa-peli.jpg";
         // Map.classList.remove('hide');
         // p2.classList.add('hide');
-                }, 4000);}
+                }, 2000);
+}
 
 
 
@@ -262,7 +237,6 @@ selectionButtons.forEach(selectionButton => {
             roundInfo.innerHTML = `Round: ${rounds}`;
         }
         console.log(`${team1} on tehnyt ${team1Score} maalia, ${team2} on tehnyt ${team2Score}.`);
-        // scoreInfo.innerHTML = `Score: ${team1} ${team1Score} - ${team2} ${team2Score}`
         if (currentTeam === team1) {
             currentTeam = team2;
             button1.textContent = 'Shoot to the left';
@@ -281,7 +255,6 @@ selectionButtons.forEach(selectionButton => {
 
         let kick;
         if (currentTeam === team1) {
-            // kick = parseInt(prompt("Kumpaan suuntaan haluat vetää? (1: vasemmalle/2: oikealle)\n"));
             kick = selection;
         } else {
             kick = Math.floor(Math.random() * 2) + 1;
@@ -289,7 +262,6 @@ selectionButtons.forEach(selectionButton => {
 
         let diveDirection;
         if (currentTeam === team2) {
-            // diveDirection = parseInt(prompt("Minne maalivahti hyppää? (1: vasemmalle/2: oikealle)\n"));
             diveDirection = selection;
         } else {
             diveDirection = dive();
@@ -298,11 +270,13 @@ selectionButtons.forEach(selectionButton => {
         if (goal(kick, diveDirection)) {
             if (currentTeam === team1) {
                 img.src = '../img/penalty-goal.gif'
+                resultInfo.style.backgroundColor = 'green';
                 resultInfo.innerHTML = `Yes!! You scored a goal! The keeper had no chance!`
                 finalResult.innerHTML = `Now It's time to save the penalty shot! Choose where do you want to dive!`
                 team1Score += 1;
             } else {
                 img.src = '../img/penalty-allowed.gif'
+                resultInfo.style.backgroundColor = 'red';
                 resultInfo.innerHTML = `The opposition scored. You almost had it!`
                 finalResult.innerHTML = `Now it's time to pay them back! Choose where do you want to shoot!`
                 team2Score += 1;
@@ -316,18 +290,16 @@ selectionButtons.forEach(selectionButton => {
             shotDirection.innerHTML = `Shot direction: ${kick}, Dive direction: ${diveDirection}`;
             scoreInfo.innerHTML = `Score: ${team1} ${team1Score} - ${team2} ${team2Score}`
 
-            // if (currentTeam === team1) {
-            //     team1Score += 1;
-            // } else {
-            //     team2Score += 1;
-            // }
+
         } else {
             if (currentTeam === team1) {
-                img.src = '../img/penalty-miss.gif'
-                resultInfo.innerHTML = `Oh no! No goal! You missed the shot! Maybe next one!`
-                finalResult.innerHTML = `Get yourself together. We got a game to win. Choose where do you want to dive!`
+                img.src = '../img/penalty-miss.gif';
+                resultInfo.style.backgroundColor = 'red';
+                resultInfo.innerHTML = `Oh no! No goal! You missed the shot! Maybe next one!`;
+                finalResult.innerHTML = `Get yourself together. We got a game to win. Choose where do you want to dive!`;
             } else {
                 img.src = '../img/penalty-save.gif'
+                resultInfo.style.backgroundColor = 'green';
                 resultInfo.innerHTML = `Yes! No goal! You saved the shot! Way to go!`
                 finalResult.innerHTML = `That's more like it!! Now it's time to score! Choose where do you want to shoot!`
             }
@@ -410,7 +382,6 @@ document.addEventListener('DOMContentLoaded', function () {
         button1.classList.remove('hide');
         button2.classList.remove('hide');
         p1.classList.add('hide');
-        // p2.classList.remove('hide');
     });
 });
 

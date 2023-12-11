@@ -1,3 +1,4 @@
+'use strict';
 const map = L.map('map').setView([60.23, 24.74],5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -13,7 +14,7 @@ const stageElement = document.querySelector('.stats-stage-target');
 const CO2Element = document.querySelector('.stats-co2-target');
 const distanceElement = document.querySelector('.stats-distance-target');
 const travelTimesElement = document.querySelector('.stats-travel-target');
-const MAP = document.querySelector('.map');
+const MAP = document.querySelector('.leaflet-container');
 
 let playerName;
 let co2_consumed = 0;
@@ -45,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     // console.log(closestFields);
 
     // await showStartingFields(fields);
-    // await getCurrentAirportWeather(current_airport);
+    await getCurrentFieldWeather(currentField);
     await getClosestFields(currentField);
 
     // console.log(fields);
@@ -243,7 +244,7 @@ async function updateLocation(icao, p_range, u_points, g_id) {
 const tempElement = document.querySelector('.weather-temp-target');
 const weatherImgElement = document.querySelector('.weather-icon-target');
 async function getCurrentFieldWeather(current_airport) {
-    const api_key = 'f806590ff13e2499734e34a745c8ee63';
+    const api_key = '6ce33329d9eb56fcde8cc14e07aa160e';
 
     const lat = current_airport.latitude_deg;
     const lon = current_airport.longitude_deg;
