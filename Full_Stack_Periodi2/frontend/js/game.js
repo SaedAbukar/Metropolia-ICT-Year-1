@@ -1,7 +1,6 @@
 'use strict';
 
 // TODO Pitää saada peli loppumaan kun pelaaja voittaa tai häviää.
-// TODO Pitää estää pelaajaa matkustasmasta toiselle kentälle kesken pilkkukisan.
 // TODO Pitää estää pelaajaa matkustamasta kentille missä on käynyt.
 // TODO Pitää saada vastustajan nimi näkymään pilkkukisassa.
 
@@ -21,7 +20,7 @@ const stageElement = document.querySelector('.stats-stage-target');
 const CO2Element = document.querySelector('.stats-co2-target');
 const distanceElement = document.querySelector('.stats-distance-target');
 const travelTimesElement = document.querySelector('.stats-travel-target');
-const MAP = document.querySelector('.leaflet-container');
+const MAP = document.querySelector('.map-stats');
 
 let playerName;
 let co2_consumed = 0;
@@ -212,7 +211,7 @@ async function travelToAirport(field, co2_emissions, dist){
                 penStartDiv.classList.remove('hide');
                 startButton.classList.remove('hide');
                 p1.classList.remove('hide');
-                // Map.classList.add('hide');
+                MAP.style.display = 'none';
                 // p2.classList.add('hide');
             }else{
             const oppConf2 = confirm(`Stop fooling around and get ready for the game! If you are scared then just close the tap and call it a day...`);
