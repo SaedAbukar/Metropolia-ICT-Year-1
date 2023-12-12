@@ -136,22 +136,53 @@ async function getClosestFields(currentField){
             const marker = L.marker([field.latitude_deg, field.longitude_deg])
                 .addTo(map)
                 .bindPopup(`
-                            <div>
+                            <div id="travelPopup">
                                 <h3>${field.name}</h3>
                                 <button class="airport-btn" data-airport-name="${field.name}">Travel to field</button>                            
                                 <p>Distance: ${distance}KM</p>
                                 <p>CO2 consumption: ${co2_emissions}KG</p>
+                                <div class="dropdown-confirm">
+                                    <div class="confirm-content">
+                                        <p>Confirm travel?</p>
+                                        <button class="confirm-btn">Yes</button>
+                                        <button class="cancel-btn">No</button>
+                                    </div>
+                                </div>
                             </div>`);
-
             marker.on('popupopen', function (event) {
                 setTimeout(() => { // Timeout to ensure the popup's DOM is ready
                     document.querySelectorAll('.airport-btn').forEach(button => {
                         button.addEventListener('click', function () {
-                            travelToAirport(field, co2_emissions, distance);
+                            document.querySelector('.dropdown-confirm').style.display = 'block';
                         });
+
+                        document.querySelector('.confirm-btn').addEventListener('click', function() {
+                            // Handle confirm action
+                            marker.closePopup();
+
+                            document.querySelector('.dropdown-confirm').style.display = 'none';
+                            travelToAirport(field, co2_emissions, distance, true);
+                        });
+
+                        document.querySelector('.cancel-btn').addEventListener('click', function() {
+                            // Handle cancel action
+                            document.querySelector('.dropdown-confirm').style.display = 'none';
+                            marker.closePopup();
+                        });
+
                     });
                 }, 1);
             });
+
+            // marker.on('popupopen', function (event) {
+            //     setTimeout(() => { // Timeout to ensure the popup's DOM is ready
+            //         document.querySelectorAll('.airport-btn').forEach(button => {
+            //             button.addEventListener('click', function () {
+            //                 travelToAirport(field, co2_emissions, distance);
+            //             });
+            //         });
+            //     }, 1);
+            // });
             airportMarkers.addLayer(marker);
         }
     }
@@ -159,11 +190,11 @@ async function getClosestFields(currentField){
     return fields;
 }
 
-async function travelToAirport(field, co2_emissions, dist){
+async function travelToAirport(field, co2_emissions, dist, conf){
     if (visitedFields.includes(field)) {
         alert(`You have already visited this field. Travel to another field!`)
     } else {
-    const conf = confirm(`Do you want to travel to ${field.name}`);
+    // const conf = confirm(`Do you want to travel to ${field.name}`);
 
     if(conf) {
         visitedFields.push(field);
@@ -193,21 +224,19 @@ async function travelToAirport(field, co2_emissions, dist){
         await getCurrentFieldWeather(field);
         console.log(field);
         if (field.hasOwnProperty('opponent')) {
-            const oppConf = confirm(`You found an opponent! Get ready for the match against ${field.opponent['name']}!`)
-            if (oppConf) {
-                penaltyImg.classList.remove('hide')
-                penStartDiv.classList.remove('hide');
-                startButton.classList.remove('hide');
-                p1.classList.remove('hide');
-                MAP.style.display = 'none';
-                // p2.classList.add('hide');
-            }else{
-            const oppConf2 = confirm(`Stop fooling around and get ready for the game! If you are scared then just close the tap and call it a day...`);
+            // const oppConf = confirm(`You found an opponent! Get ready for the match against ${field.opponent['name']}!`)
+            const oppStatus = document.querySelector('.opponent-status');
+            oppStatus.innerHTML = `You found an opponent! Get ready for the match against ${field.opponent['name']}!`
+            penaltyImg.classList.remove('hide')
+            penStartDiv.classList.remove('hide');
+            startButton.classList.remove('hide');
+            p1.classList.remove('hide');
+            MAP.style.display = 'none';
+            // p2.classList.add('hide');
             penaltyImg.classList.remove('hide')
             startButton.classList.remove('hide');
             p1.classList.remove('hide');
             // p2.classList.add('hide');
-            }
         }else{
             alert(`There was no opponent in this field. Continue the search and travel to next field... `);
         }

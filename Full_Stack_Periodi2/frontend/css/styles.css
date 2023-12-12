@@ -343,6 +343,10 @@ button:hover {
     background-color: rgba(211, 187, 255, 1);
 }
 
+.dropdown-confirm {
+    display: none;
+}
+
 
 @media only screen and (min-width: 600px) {
     .container {
