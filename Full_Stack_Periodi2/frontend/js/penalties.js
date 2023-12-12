@@ -20,6 +20,7 @@ const gamesElement = document.querySelector('.stats-games-target');
 const winsElement = document.querySelector('.stats-wins-target');
 const penStartDiv = document.querySelector('#penalty-start');
 
+
 const startButton = document.getElementById('start-button');
 const p1 = document.querySelector('#p1');
 const p2 = document.querySelector('#p2');
@@ -103,55 +104,10 @@ const TOTALGAMES = 7;
 let gamesPlayed = 0;
 let wins = 0;
 
-function checkGameStatus() {
-    if(gamesPlayed === TOTALGAMES) {
-        penStartDiv.classList.add('hide');
-        divpen1.classList.add('hide');
-        divpen2.classList.add('hide');
-        divpen3.classList.remove('hide')
-        if (wins < 2 && gamesPlayed === 3) {
-            penStartDiv.classList.add('hide');
-            divpen1.classList.add('hide');
-            divpen2.classList.add('hide');
-            divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins]}`;
-            finalResult.innerText = `You lost 2 games out of 3. You didnt make it out the group stage... Better luck next time!`
-        }
-        if (wins >= 2 && gamesPlayed === 3) {
-            penStartDiv.classList.add('hide');
-            divpen1.classList.add('hide');
-            divpen2.classList.add('hide');
-            divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins]}`;
-            finalResult.innerText = `Congrats!! You made it to the knockout-stages!`
-        }
-        if (wins > 3 && wins !== TOTALGAMES) {
-            penStartDiv.classList.add('hide');
-            divpen1.classList.add('hide');
-            divpen2.classList.add('hide');
-            divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins]}`;
-            finalResult.innerText = `You lost in the ${stages[wins]} stage.. Valiant effort! Keep your head up!`
-        }
-        if (wins === 7) {
-            penStartDiv.classList.add('hide');
-            divpen1.classList.add('hide');
-            divpen2.classList.add('hide');
-            divpen3.classList.remove('hide');
-            stageElement.innerText = `${stages[wins - 1]}`;
-            finalResult.innerText = `Congratulations! You are a World Champion!!`
-        }
-    } console.log(gameContinues)
-    return gameContinues
-}
-
-console.log(stageElement.innerText = `${stages[wins - 1]}`);
-
-
-
 let numberRounds = 5;
 const team1 = 'Suomi';
 let team2 = 'Opponent'
+let penaltyContinues = true;
 let gameContinues = true;
 let team1Score = 0;
 let team2Score = 0;
@@ -160,57 +116,134 @@ let team2Turn = 0;
 let currentTeam = team2;
 let rounds = 0;
 
+
+function checkGameStatus(wins, gamesPlayed, TOTALGAMES) {
+    if (gameContinues) {
+        resetPenaltyGame();
+    }
+    if(gamesPlayed === TOTALGAMES) {
+        gameContinues = false;
+        console.log('game over!')
+        MAP.style.display = 'none';
+        oppStatus.innerHTML = `Game over!`
+        finalResult.innerHTML = `Games played: ${gamesPlayed}, Wins: ${wins}, Stage: ${stages[wins]}`
+        penStartDiv.classList.add('hide');
+        divpen1.classList.remove('penalty-info');
+        divpen2.classList.remove('penalty-info');
+        divpen1.classList.add('hide');
+        divpen2.classList.add('hide');
+        divpen3.classList.remove('hide')}
+        if (wins < 2 && gamesPlayed === 3) {
+            gameContinues = false;
+            MAP.style.display = 'none';
+            oppStatus.innerHTML = `Game over!`
+            penStartDiv.classList.add('hide');
+            divpen1.classList.remove('penalty-info');
+            divpen2.classList.remove('penalty-info');
+            divpen1.classList.add('hide');
+            divpen2.classList.add('hide');
+            divpen3.classList.remove('hide');
+            stageElement.innerText = `${stages[wins]}`;
+            finalResult.innerText = `You lost 2 games out of 3. You didnt make it out the group stage... Better luck next time!\n Games played: ${gamesPlayed}, Wins: ${wins}, Stage: ${stages[wins]}`;
+        }
+        if (wins >= 2 && gamesPlayed === 3) {
+            gameContinues = true;
+            oppStatus.innerHTML = `Congrats!! You made it to the knockout-stages!`;
+            penStartDiv.classList.add('hide');
+            divpen1.classList.add('hide');
+            divpen2.classList.add('hide');
+            divpen3.classList.add('hide');
+            stageElement.innerText = `${stages[wins]}`;
+            resetPenaltyGame();
+        }
+        if (wins > 3 && wins !== TOTALGAMES) {
+            gameContinues = false;
+            MAP.style.display = 'none';
+            oppStatus.innerHTML = `Game over!!`
+            penStartDiv.classList.add('hide');
+            divpen1.classList.remove('penalty-info');
+            divpen2.classList.remove('penalty-info');
+            divpen1.classList.add('hide');
+            divpen2.classList.add('hide');
+            divpen3.classList.remove('hide');
+            stageElement.innerText = `${stages[wins]}`;
+            finalResult.innerText = `You lost in the ${stages[wins]} stage.. Valiant effort! Keep your head up!\n Games played: ${gamesPlayed}, Wins: ${wins}, Stage: ${stages[wins]}`;
+        }
+        if (wins === 7) {
+            gameContinues = false;
+            MAP.style.display = 'none';
+            oppStatus.innerHTML = `YOU DID IT!!!`
+            penStartDiv.classList.add('hide');
+            divpen1.classList.remove('penalty-info');
+            divpen2.classList.remove('penalty-info');
+            divpen1.classList.add('hide');
+            divpen2.classList.add('hide');
+            divpen3.classList.remove('hide');
+            stageElement.innerText = `${stages[wins - 1]}`;
+            finalResult.innerText = `Congratulations! You are a World Champion!!\n Games played: ${gamesPlayed}, Wins: ${wins}, Stage: ${stages[wins - 1]}`;
+        }console.log(gameContinues)
+    return gameContinues
+}
+
+checkGameStatus(wins, gamesPlayed, TOTALGAMES);
+console.log(stageElement.innerText = `${stages[wins]}`);
+
 function resetPenaltyGame () {
     setTimeout(function () {
-        gameContinues = true;
-        team1Score = 0;
-        team2Score = 0;
-        team1Turn = 0;
-        team2Turn = 0;
-        currentTeam = team2;
-        rounds = 0;
-        roundInfo.innerHTML = 'Round: 0';
-        scoreInfo.innerHTML = 'Score: 0 - 0';
-        attemptInfo.innerHTML = 'Turn: -';
-        shotDirection.innerHTML = 'Shot direction: - , dive direction: -';
-        resultInfo.innerHTML = 'I might cheer you on...';
-        finalResult.innerHTML = 'The game will start when you pick your side!';
+        if (!gameContinues) {
+            checkGameStatus(wins, gamesPlayed, TOTALGAMES);
+        } else {
+            oppStatus.innerHTML = 'Search for opponents!'
+            penaltyContinues = true;
+            team1Score = 0;
+            team2Score = 0;
+            team1Turn = 0;
+            team2Turn = 0;
+            currentTeam = team2;
+            rounds = 0;
+            roundInfo.innerHTML = 'Round: 0';
+            scoreInfo.innerHTML = 'Score: 0 - 0';
+            attemptInfo.innerHTML = 'Turn: -';
+            shotDirection.innerHTML = 'Shot direction: - , dive direction: -';
+            resultInfo.innerHTML = 'I might cheer you on...';
+            finalResult.innerHTML = 'The game will start when you pick your side!';
 
-
-        resultInfo.style.backgroundColor = '#d3bbff';
-        penStartDiv.classList.add('hide');
-        startButton.classList.add('hide');
-        divpen1.classList.add('hide');
-        divpen1.classList.remove('penalty-info');
-        divpen2.classList.add('hide');
-        divpen2.classList.remove('penalty-info');
-        divpen3.classList.add('hide');
-        divpen3.classList.remove('penalty-info');
-        button1.classList.add('hide');
-        button2.classList.add('hide');
-        p1.classList.remove('hide');
-        img.src = "../img/Suomen-MM-kisa-peli.jpg";
-        MAP.style.display = 'flex';
-                }, 2000);
+            resultInfo.style.backgroundColor = '#d3bbff';
+            penStartDiv.classList.add('hide');
+            startButton.classList.add('hide');
+            divpen1.classList.add('hide');
+            divpen1.classList.remove('penalty-info');
+            divpen2.classList.add('hide');
+            divpen2.classList.remove('penalty-info');
+            divpen3.classList.add('hide');
+            divpen3.classList.remove('penalty-info');
+            button1.classList.add('hide');
+            button2.classList.add('hide');
+            p1.classList.remove('hide');
+            img.src = "../img/Suomen-MM-kisa-peli.jpg";
+            MAP.style.display = 'flex';
+        }}, 2000);
 }
 
 
 
 selectionButtons.forEach(selectionButton => {
     selectionButton.addEventListener('click', e => {
-        if (!gameContinues) {
+        if (!penaltyContinues) {
             // resetPenaltyGame();
-            checkGameStatus();
+            // checkGameStatus();
+            checkGameStatus(wins, gamesPlayed, TOTALGAMES);
             return; // Stop processing clicks if the game is over
         }
         if (Math.abs(team1Score - team2Score) > (numberRounds - rounds) && team1Turn === team2Turn) {
-            gameContinues = false;
+            penaltyContinues = false;
             console.log(`${team1} yritykset: ${team1Turn}`);
             console.log(`${team2} yritykset: ${team2Turn}`);
             console.log(`Peli päättyi! ${team1} teki ${team1Score} ja ${team2} teki ${team2Score}`);
             finalResult.innerHTML = `Game over! The Score is ${team1} ${team1Score} - ${team2} ${team2Score}.`;
+            checkGameStatus(wins, gamesPlayed, TOTALGAMES);
             resetPenaltyGame();
-            checkGameStatus();
+            // checkGameStatus();
             if (team1Score > team2Score) {
                 stageElement.innerText = `${stages[wins]}`
                 gamesPlayed++;
@@ -218,11 +251,13 @@ selectionButtons.forEach(selectionButton => {
                 wins++;
                 winsElement.innerText = `${wins}`;
                 finalResult.innerHTML = ` You won the game against ${team2}! Final score: ${team1Score} - ${team2Score}. This window will close soon. Continue your search for opponents!`;
+                checkGameStatus(wins, gamesPlayed, TOTALGAMES);
                 return team1;
             } else if (team2Score > team1Score) {
                 gamesPlayed++;
                 gamesElement.innerText = `${gamesPlayed}`;
                 finalResult.innerHTML = ` You lost the game against ${team2}... Final score: ${team1Score} - ${team2Score}. This window will close soon. Continue your search for opponents!`;
+                checkGameStatus(wins, gamesPlayed, TOTALGAMES);
                 return team2;
             }
         }

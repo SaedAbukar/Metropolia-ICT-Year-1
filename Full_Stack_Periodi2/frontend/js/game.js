@@ -1,6 +1,6 @@
 'use strict';
 
-// TODO Pitää saada peli loppumaan kun pelaaja voittaa tai häviää.
+
 // TODO Pitää estää pelaajaa matkustamasta kentille missä on käynyt.
 // TODO Pitää saada vastustajan nimi näkymään pilkkukisassa.
 

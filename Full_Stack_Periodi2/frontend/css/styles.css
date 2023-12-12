@@ -236,10 +236,14 @@ figure {
 /* Penalties css*/
 #map {
     width: 100%;
-    height: 100vh;
+    height: 90vh;
     overflow: hidden;
     border: 1px solid white;
     border-radius: 8px;
+}
+
+.stats-boxes {
+    height: 90vh;
 }
 
 #start-img {
