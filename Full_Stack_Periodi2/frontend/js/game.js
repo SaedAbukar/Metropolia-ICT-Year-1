@@ -112,6 +112,8 @@ async function getClosestFields(currentField){
     const response = await fetch(`http://127.0.0.1:3000/fields/closest/${lat}/${lon}`);
     const fields = await response.json();
 
+
+    // Assigning the opponents randomly to 7 different field
     function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
