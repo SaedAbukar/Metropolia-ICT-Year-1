@@ -144,7 +144,7 @@ function checkGameStatus(wins, gamesPlayed, TOTALGAMES) {
             stageElement.innerText = `${stages[wins]}`;
             finalResult.innerText = `You lost 2 games out of 3. You didnt make it out the group stage... Better luck next time!\n Games played: ${gamesPlayed}, Wins: ${wins}, Stage: ${stages[wins]}`;
         }
-        if (wins >= 2 && gamesPlayed === 3) {
+        if (wins >= 2 && gamesPlayed >= 3) {
             gameContinues = true;
             oppStatus.innerHTML = `Congrats!! You made it to the knockout-stages!`;
             penStartDiv.classList.add('hide');
