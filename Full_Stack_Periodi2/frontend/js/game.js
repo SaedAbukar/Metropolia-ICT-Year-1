@@ -21,6 +21,7 @@ const CO2Element = document.querySelector('.stats-co2-target');
 const distanceElement = document.querySelector('.stats-distance-target');
 const travelTimesElement = document.querySelector('.stats-travel-target');
 const MAP = document.querySelector('.map-stats');
+const oppStatus = document.querySelector('.opponent-status');
 
 let playerName;
 let co2_consumed = 0;
@@ -224,8 +225,6 @@ async function travelToAirport(field, co2_emissions, dist, conf){
         await getCurrentFieldWeather(field);
         console.log(field);
         if (field.hasOwnProperty('opponent')) {
-            // const oppConf = confirm(`You found an opponent! Get ready for the match against ${field.opponent['name']}!`)
-            const oppStatus = document.querySelector('.opponent-status');
             oppStatus.innerHTML = `You found an opponent! Get ready for the match against ${field.opponent['name']}!`
             penaltyImg.classList.remove('hide')
             penStartDiv.classList.remove('hide');
@@ -238,7 +237,7 @@ async function travelToAirport(field, co2_emissions, dist, conf){
             p1.classList.remove('hide');
             // p2.classList.add('hide');
         }else{
-            alert(`There was no opponent in this field. Continue the search and travel to next field... `);
+            oppStatus.innerHTML = `There was no opponent in this field. Continue the search and travel to next field... `;
         }
     }}
 }
