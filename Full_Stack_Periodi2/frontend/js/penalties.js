@@ -1,6 +1,6 @@
 'use strict';
 
-// Getting and creating the necessary elements for the game
+// Getting and creating the necessary elements for the game.
 
 const img = document.querySelector('#start-img');
 const penaltyImg = document.querySelector('#penalty-img');

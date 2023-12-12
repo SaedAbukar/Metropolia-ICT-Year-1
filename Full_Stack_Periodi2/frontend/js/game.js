@@ -299,7 +299,7 @@ async function getCurrentFieldWeather(current_airport) {
 }
 
 
-// Converting kelvins to celsius
+// Converting kelvins to celsius.
 function kelvinToCelcius(kelvin){
     return Math.floor(kelvin - 273.15);
 }
