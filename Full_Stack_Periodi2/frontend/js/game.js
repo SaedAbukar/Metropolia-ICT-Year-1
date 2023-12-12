@@ -10,6 +10,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 }).addTo(map);
 
+
+// Getting and creating the necessary elements for the game
+
 const airportMarkers = L.featureGroup().addTo(map);
 const visitedFields = [];
 
@@ -63,6 +66,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
 });
 
 
+// Getting the fields from the database through api
 async function getFields() {
   const response = await fetch('http://127.0.0.1:3000/get_fields');
   const fields = await response.json();
@@ -71,7 +75,7 @@ async function getFields() {
 }
 
 
-
+// Setting starting fields for every game
 async function setStartingField() {
     const options = ['CBCP', 'CROG', 'MMEA', 'MMEB', 'MMEJ', 'KAHS', 'KATT', 'KCLF', 'KFPB', 'KHRS', 'KLFF', 'KLSS', 'KMBS', 'KMLS', 'KNRG', 'KSFS'];
     const random_icao = options[Math.floor(Math.random() * options.length)];
@@ -93,6 +97,7 @@ async function setStartingField() {
     return airport;
 }
 
+// Getting the closest fields for the user
 async function getClosestFields(currentField){
     if (visitedFields.some(item => item === currentField)) {
         console.log(visitedFields);
@@ -191,6 +196,8 @@ async function getClosestFields(currentField){
     return fields;
 }
 
+
+// Moving the user to the demanded field
 async function travelToAirport(field, co2_emissions, dist, conf){
     if (visitedFields.includes(field)) {
         alert(`You have already visited this field. Travel to another field!`)
@@ -224,6 +231,8 @@ async function travelToAirport(field, co2_emissions, dist, conf){
         await getClosestFields(field);
         await getCurrentFieldWeather(field);
         console.log(field);
+
+        // Checking if the field has an opponent and starting the penalty-shootout game if there's an opponent
         if (field.hasOwnProperty('opponent')) {
             oppStatus.innerHTML = `You found an opponent! Get ready for the match against ${field.opponent['name']}!`
             penaltyImg.classList.remove('hide')
@@ -242,6 +251,8 @@ async function travelToAirport(field, co2_emissions, dist, conf){
     }}
 }
 
+
+// Calculating the co2 emissions for each flight
 function calculateCO2(distance) {
     const fuel_burn_per_hour = 500;
     const cruising_speed_km_hr = 900;
@@ -254,7 +265,7 @@ function calculateCO2(distance) {
     return Math.floor(co2_emissions)
 }
 
-
+// Getting the opponents from the database through api
 async function getOpponents() {
   const response = await fetch('http://127.0.0.1:3000/get_opponents');
   const opponents = await response.json();
@@ -268,6 +279,9 @@ async function updateLocation(icao, p_range, u_points, g_id) {
 
 const tempElement = document.querySelector('.weather-temp-target');
 const weatherImgElement = document.querySelector('.weather-icon-target');
+
+
+// Getting current weather for the current field
 async function getCurrentFieldWeather(current_airport) {
     const api_key = '6ce33329d9eb56fcde8cc14e07aa160e';
 
@@ -284,6 +298,8 @@ async function getCurrentFieldWeather(current_airport) {
     weatherImgElement.src = `https://openweathermap.org/img/wn/${icon}.png`;
 }
 
+
+// Converting kelvins to celsius
 function kelvinToCelcius(kelvin){
     return Math.floor(kelvin - 273.15);
 }

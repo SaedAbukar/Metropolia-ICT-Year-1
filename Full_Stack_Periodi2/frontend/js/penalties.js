@@ -1,4 +1,7 @@
 'use strict';
+
+// Getting and creating the necessary elements for the game
+
 const img = document.querySelector('#start-img');
 const penaltyImg = document.querySelector('#penalty-img');
 
@@ -23,22 +26,16 @@ const penStartDiv = document.querySelector('#penalty-start');
 
 const startButton = document.getElementById('start-button');
 const p1 = document.querySelector('#p1');
-const p2 = document.querySelector('#p2');
 
-
-
-// divpen1.classList.add('penalty-info');
 divpen1.classList.add('hide');
 roundInfo.classList.add('round-info');
 scoreInfo.classList.add('score-info');
 attemptInfo.classList.add('attempt-info');
 
-// divpen2.classList.add('penalty-info');
 divpen2.classList.add('hide');
 shotDirection.classList.add('shot-direction');
 resultInfo.classList.add('result-info');
 
-// divpen3.classList.add('penalty-info');
 divpen3.classList.add('hide');
 finalResult.classList.add('final-result');
 
@@ -86,7 +83,6 @@ main.append(section);
 divcontainer.append(main)
 document.body.append(divcontainer);
 
-
 roundInfo.innerHTML = 'Round: 0';
 scoreInfo.innerHTML = 'Score: 0 - 0';
 attemptInfo.innerHTML = 'Turn: -';
@@ -95,6 +91,7 @@ resultInfo.innerHTML = 'I might cheer you on...';
 finalResult.innerHTML = 'The game will start when you pick your side!';
 
 
+// Creating the penalty-shootout interface and functionality
 
 const selectionButtons = document.querySelectorAll('[data-selection]');
 const SELECTIONS = [1, 2]
@@ -117,6 +114,7 @@ let currentTeam = team2;
 let rounds = 0;
 
 
+// Checking the game status and ending the game when appropriate
 function checkGameStatus(wins, gamesPlayed, TOTALGAMES) {
     if (gameContinues) {
         resetPenaltyGame();
@@ -188,6 +186,8 @@ function checkGameStatus(wins, gamesPlayed, TOTALGAMES) {
 checkGameStatus(wins, gamesPlayed, TOTALGAMES);
 console.log(stageElement.innerText = `${stages[wins]}`);
 
+
+// Resetting the penalty-shootout game after the user has finished the game
 function resetPenaltyGame () {
     setTimeout(function () {
         if (!gameContinues) {
@@ -226,7 +226,7 @@ function resetPenaltyGame () {
 }
 
 
-
+// Handling the user activity and creating the penalty-shootout functionality
 selectionButtons.forEach(selectionButton => {
     selectionButton.addEventListener('click', e => {
         if (!penaltyContinues) {
@@ -354,6 +354,8 @@ selectionButtons.forEach(selectionButton => {
     })
 })
 
+
+// Functions for the penalty-shootout game
 function makeSelection(selection) {
     console.log(selection)
 }
@@ -398,6 +400,8 @@ function printGoalkeeper(goalkeeper) {
         console.log("|        //     |");
     }
 }
+
+// Eventlisteners to start button that initializes the penalty-shootout game
 document.addEventListener('DOMContentLoaded', function () {
     const startButton = document.getElementById('start-button');
 
