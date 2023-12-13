@@ -1,10 +1,5 @@
 'use strict';
 
-
-// TODO Pitää estää pelaajaa matkustamasta kentille missä on käynyt.
-// TODO Pitää saada vastustajan nimi näkymään pilkkukisassa.
-
-
 const map = L.map('map').setView([60.23, 24.74],5);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
