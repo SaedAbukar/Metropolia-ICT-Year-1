@@ -2,7 +2,7 @@
 This Git repository is for Metropolia year 1's excercises and projects. There is two parts. Ohjelmisto 1 and Ohjelmisto 2.
 
 #### Ohjelmisto 1
-Backend stuff. Python and MariaDB
+Backend stuff. Python and MariaDB.
 Python tehtävät: Python excercises.
 Python_Projekti_Periodi 1: A game that works in Python terminal and uses MariaDB relational database.
 
