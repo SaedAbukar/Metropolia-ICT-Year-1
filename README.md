@@ -1,4 +1,4 @@
-# Ohjelmisto-s23-uusi-yritys
+# Ohjelmisto-s23
 This Git repository is for Metropolia year 1's excercises and projects. There is two parts. Ohjelmisto 1 and Ohjelmisto 2.
 
 #### Ohjelmisto 1
