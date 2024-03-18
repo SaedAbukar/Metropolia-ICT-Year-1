@@ -2,7 +2,7 @@ import mysql.connector
 import random
 import story
 from penalties import penalty_shootout
-from colorama import Fore, Style
+from colorama import Fore
 from geopy import distance
 
 conn = mysql.connector.connect(
