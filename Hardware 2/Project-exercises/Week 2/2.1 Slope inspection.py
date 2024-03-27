@@ -7,7 +7,6 @@ prev = 0
 slope = 0
 prev_slope = 0
 peaks = []
-peaks2 = []
 
 # Define the sampling interval (ts) in seconds
 sample_rate = 250  # Example: Assuming 250 Hz sampling rate
