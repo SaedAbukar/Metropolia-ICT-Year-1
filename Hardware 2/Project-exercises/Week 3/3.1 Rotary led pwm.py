@@ -33,8 +33,9 @@ class PWMLED:
         
         :param amount: Amount to increase the brightness by (default is 100).
         """
-        new_brightness = self.brightness + amount
-        self.set_brightness(new_brightness)
+        if self.is_on:
+            new_brightness = self.brightness + amount
+            self.set_brightness(new_brightness)
 
     def decrease_brightness(self, amount=100):
         """
@@ -42,8 +43,9 @@ class PWMLED:
         
         :param amount: Amount to decrease the brightness by (default is 100).
         """
-        new_brightness = self.brightness - amount
-        self.set_brightness(new_brightness)
+        if self.is_on:
+            new_brightness = self.brightness - amount
+            self.set_brightness(new_brightness)
 
     def toggle(self):
         """
@@ -114,7 +116,7 @@ while True:
     if button.is_pressed():
         led.toggle()
 
-    if rot.fifo.has_data():
+    if led.is_on and rot.fifo.has_data():
         value = rot.fifo.get()
         if value == 1:
             led.increase_brightness()
