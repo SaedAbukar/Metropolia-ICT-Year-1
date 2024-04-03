@@ -9,38 +9,30 @@ oled_width = 128
 oled_height = 64
 oled = SSD1306_I2C(oled_width, oled_height, i2c)
 
-# Global variables
-line = 1  # Current line number
-shift = 0  # Shift value for displaying menu items
-list_length = []  # List to store menu items
-max_lines = 8  # Total number of lines to display on the screen
 # Menu variables
-item = 1  # Counter for menu items
+item_line_y = 0
 line_height = 8  # Height of each line of text on the screen
+rect_height_y = oled_height - 1 - line_height
+scroll_height = 0 - line_height
+rect_height_x = 0
+black_colour = 0
+white_colour = 1
 
 
 while True:
-    # Clear the display
-    oled.fill(0)
-
-    # Calculate the starting index for displaying items
-    start_index = max(0, len(list_length) - max_lines)
-
-    # Get the subset of items to display on the screen
-    items_to_display = list_length[start_index:]
-
-    # Display the subset of items on the screen
-    for i, item in enumerate(items_to_display):
-        oled.text(item, 1, i * line_height)  # Display menu item
-
-    oled.show()
-
     # Get user input
     user_input = input("Enter something (type 'quit' to exit): ")
+    # Display the subset of items on the screen
+    if user_input != '':
+        oled.text('%s' % user_input, rect_height_x, item_line_y, white_colour)
+    
+    item_line_y += 8
+    if item_line_y > oled_height and user_input != '':
+        oled.scroll(0, scroll_height)
+        oled.fill_rect(0, rect_height_y, oled_width, oled_height - 1, black_colour)
+        oled.text('%s' % user_input, rect_height_x, rect_height_y, white_colour)
+    oled.show()
 
     # Process user input
     if user_input.lower() == 'quit':  # Check if user wants to quit
         break
-    elif user_input:  # Check if user input is not empty
-        list_length.append(user_input)  # Append user input to the list
-

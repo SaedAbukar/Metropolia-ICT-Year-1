@@ -32,6 +32,6 @@ while True:
         oled.fill(0)
         x = 0
         y = int(oled_height / 2)
-    if x >= oled_width:
+    if x >= oled_width-1:
         x = 0
         
