@@ -36,7 +36,7 @@ class PWMLED:
             self.on()
 
     def on(self):
-        self.set_brightness(self.last_brightness + 5)
+        self.set_brightness(self.last_brightness)
         self.is_on = True
 
     def off(self):
@@ -84,7 +84,7 @@ while True:
         print('led bright', led.brightness)
         print('last_bright', led.last_brightness)
 
-    if led.is_on and rot.fifo.has_data() and not rot.fifo.empty():
+    if led.is_on and rot.fifo.has_data():
         if value == 1:
             led.increase_brightness()
             print('led bright', led.brightness)
