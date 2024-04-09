@@ -4,6 +4,7 @@ from fifo import Fifo
 data = Filefifo(10, name='capture_250Hz_01.txt')
 current = data.get()
 seconds = 1 / 250
+two_seconds = 2 / seconds
 ten_seconds = 10 / seconds
 
 
@@ -15,7 +16,7 @@ def scale_data(data, min_val, max_val):
 def get_samples():
     current = data.get()
     maximum = minimum = current
-    for _ in range(ten_seconds):  # Assuming we've already processed one data point
+    for _ in range(two_seconds):  # Assuming we've already processed one data point
         current = data.get()  # Get the next data point
         if current > maximum:
             maximum = current

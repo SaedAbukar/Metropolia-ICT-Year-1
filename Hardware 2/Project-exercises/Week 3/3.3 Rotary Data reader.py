@@ -1,4 +1,4 @@
-from machine import Pin, PWM, UART, Pin, I2C, Timer, ADC
+from machine import Pin, I2C, Timer
 from ssd1306 import SSD1306_I2C
 from filefifo import Filefifo
 from fifo import Fifo
@@ -41,19 +41,8 @@ oled_height = 64
 oled = SSD1306_I2C(oled_width, oled_height, i2c)
 
 
-item_line_y = 0
-line_height = 8  # Height of each line of text on the screen
-rect_height_y = oled_height - 1 - line_height
-scroll_height_down = 0 - line_height
-scroll_height_up = 0 + line_height
-rect_height_x = 0
-black_colour = 0
-white_colour = 1
-
-data = Filefifo(10, name='capture_250Hz_02.txt')
+data = Filefifo(10, name='capture_250Hz_03.txt')
 current = data.get()
-seconds = 1 / 250
-ten_seconds = 10 / seconds
 samples = []
 
 
@@ -90,8 +79,10 @@ def show(samples, scroll_pos):
         x += 1
     oled.show()
 
-print(samples)
+
 scroll_pos = 0
+
+
 while True:
     if rot.fifo.has_data():
         value = rot.fifo.get()
@@ -100,10 +91,4 @@ while True:
 
         if value == -1 and scroll_pos > 0:
             scroll_pos -= 1
-        print(samples[scroll_pos])
-        show(samples,scroll_pos)
-
-
-
-    
-
+    show(samples,scroll_pos)
