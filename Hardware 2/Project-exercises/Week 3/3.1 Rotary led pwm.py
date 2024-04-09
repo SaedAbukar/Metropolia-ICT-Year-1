@@ -36,7 +36,7 @@ class PWMLED:
             self.on()
 
     def on(self):
-        self.set_brightness(self.last_brightness)
+        self.set_brightness(self.last_brightness + 5)
         self.is_on = True
 
     def off(self):
