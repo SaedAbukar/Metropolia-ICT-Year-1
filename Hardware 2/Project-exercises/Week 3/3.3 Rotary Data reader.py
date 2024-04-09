@@ -50,15 +50,16 @@ rect_height_x = 0
 black_colour = 0
 white_colour = 1
 
-data = Filefifo(10, name='capture_250Hz_01.txt')
+data = Filefifo(10, name='capture_250Hz_02.txt')
 current = data.get()
 seconds = 1 / 250
 ten_seconds = 10 / seconds
 samples = []
 
 
+
 def scale_data(data, min_val, max_val):
-    scaled_data = ((data - min_val) / (max_val - min_val)) * 100
+    scaled_data = ((data - min_val) / (max_val - min_val)) * (oled_height - 1)
     return scaled_data
 
 # Iterate through the data stream
@@ -67,7 +68,6 @@ def get_samples():
     maximum = minimum = current
     for i in range(1000):  # Assuming we've already processed one data point
         current = data.get()  # Get the next data point
-        samples.append(current)
         if current > maximum:
             maximum = current
         elif current < minimum:
@@ -76,16 +76,21 @@ def get_samples():
 
 minimum, maximum = get_samples()
 
+for i in range(1000):
+    current = data.get()
+    scaled = int(scale_data(current, minimum, maximum))
+    samples.append(scaled)
+    
 
 def show(samples, scroll_pos):
     oled.fill(0)
+    x = 1
     for i in range(128):
-        index = i + scroll_pos
-        if 0 <= index < len(samples):
-            oled.text("%s" % samples[index], 0, i * line_height)
+        oled.pixel(i, samples[i + scroll_pos], 1)
+        x += 1
     oled.show()
 
-    
+print(samples)
 scroll_pos = 0
 while True:
     if rot.fifo.has_data():
@@ -95,7 +100,10 @@ while True:
 
         if value == -1 and scroll_pos > 0:
             scroll_pos -= 1
-        show(samples, scroll_pos)
+        print(samples[scroll_pos])
+        show(samples,scroll_pos)
+
+
 
     
 
