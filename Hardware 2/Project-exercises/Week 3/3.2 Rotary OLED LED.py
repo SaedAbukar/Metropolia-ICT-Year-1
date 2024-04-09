@@ -72,7 +72,7 @@ class Encoder:
 
 rot = Encoder(10, 11, 12)
 
-pin_numbers = [20, 21, 22]
+pin_numbers = [22, 21, 20]
 leds = [PWMLED(pin) for pin in pin_numbers]
 
 led_list = ["LED1", "LED2", "LED3"]
@@ -84,11 +84,7 @@ oled_height = 64
 oled = SSD1306_I2C(oled_width, oled_height, i2c)
 
 
-
 line_height = 10
-
-
-
 
 
 current_line = 2
