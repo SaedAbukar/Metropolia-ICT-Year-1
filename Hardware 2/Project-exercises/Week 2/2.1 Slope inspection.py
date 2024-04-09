@@ -25,7 +25,7 @@ for _ in range(3000):
     if prev_slope > 0 and slope <= 0:
         peaks.append(_)
 
-        
+      
 for _ in range(1, len(peaks)):
     peak_to_peak_samples = peaks[_] - peaks[_ - 1]
     peak_to_peak_seconds = peak_to_peak_samples * sampling_interval  # Calculate peak-to-peak interval in seconds
@@ -42,4 +42,3 @@ frequency = 1 / average_ppi
 print("Peak-to-Peak Intervals (in number of samples):", peak_to_peak_intervals_samples[1:4])
 print("Peak-to-Peak Intervals (in seconds):", peak_to_peak_seconds, "seconds")
 print("Average Frequency of the Signal:", frequency, "Hz")
-
