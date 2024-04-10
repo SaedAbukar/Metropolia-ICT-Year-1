@@ -73,10 +73,12 @@ for i in range(1000):
 
 def show(samples, scroll_pos):
     oled.fill(0)
-    x = 1
-    for i in range(128):
-        oled.pixel(i, samples[i + scroll_pos], 1)
-        x += 1
+    for i in range(oled_width):
+        index = i + scroll_pos
+        if index < len(samples):
+            oled.pixel(i, samples[index], 1)
+        else:
+            index = len(samples)
     oled.show()
 
 
@@ -84,11 +86,12 @@ scroll_pos = 0
 
 
 while True:
-    if rot.fifo.has_data():
+    while rot.fifo.has_data():
         value = rot.fifo.get()
-        if value == 1 and scroll_pos < len(samples) - 128:
-            scroll_pos += 1
+        if value == 1 and scroll_pos <= len(samples) - oled_width:
+            scroll_pos += 9
 
         if value == -1 and scroll_pos > 0:
-            scroll_pos -= 1
-    show(samples,scroll_pos)
+            scroll_pos -= 9
+        
+    show(samples, scroll_pos)
