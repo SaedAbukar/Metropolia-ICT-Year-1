@@ -1,66 +1,68 @@
 from filefifo import Filefifo
-from fifo import Fifo
 
-data = Filefifo(10, name='capture02_250Hz.txt')
-
+data = Filefifo(10, name='capture03_250Hz.txt')
 
 # Define the sampling interval (ts) in seconds
 sample_rate = 250  # Example: Assuming 250 Hz sampling rate
 sampling_interval = 1.0 / sample_rate
-seconds = 1 / 250
-two_seconds = 2 / seconds
 
 
-def get_samples(data, seconds):
+def calculate_ppi_and_hr(data, sample_rate=250, min_hr=30, max_hr=200, max_hr_count=20):
     current = data.get()
     maximum = minimum = current
     ratio = 3/4
-    threshold = minimum + (maximum - minimum) * ratio
     sample = 0
     prev = 0
     prev_slope = 0
     slope = 0
     peaks = []
-    for i in range(seconds):  # Assuming we've already processed one data point
-        prev = current
-        current = data.get()  # Get the next data point
-        if current > maximum:
-            maximum = current
-        elif current < minimum:
-            minimum = current
-        sample += 1
-        prev_slope = slope
-        slope = current - prev
-        threshold = minimum + (maximum - minimum) * ratio
-        #print("cur", current)
-        #print("prev", prev)
-        #print("max", maximum)
-        #print("min", minimum)
-        #print("prevslope", prev_slope)
-        #print("slope", slope)
-        #print("threshold", threshold)
-        if prev_slope > 0 and slope <= 0 and current > threshold:
-            peaks.append(sample)
-            
-    ppi_samples = []    
-    for i in range(1, len(peaks)):
-        ppi_samples.append(peaks[i] - peaks[i - 1])
-        
-    ppi_seconds = [samples * sampling_interval for samples in ppi_samples]
+    counting = False  # Flag to indicate if counting samples
+    ppi_milliseconds = []
     hr = []
-    min_hr = 30
-    max_hr = 200
-    for ppi in ppi_seconds:
-        if min_hr <= (60 / ppi) <= max_hr:
-            hr.append(60 / ppi)
+    
+    sampling_interval_ms = (1 / sample_rate) * 1000  # Calculate sampling interval in milliseconds
 
-    #print("peaks", peaks)
-    #print("ppi in seconds", ppi_seconds)
-    #print("hr", hr)
-    return peaks, ppi_seconds, hr[:20]
-
-
+    while len(hr) < max_hr_count:
+        if data.has_data():# Loop until max_hr_count heart rates are calculated
+            prev = current
+            current = data.get()  # Get the next data point
+            if current > maximum:
+                maximum = current
+            elif current < minimum:
+                minimum = current
+            sample += 1
+            prev_slope = slope
+            slope = current - prev
+            threshold = minimum + (maximum - minimum) * ratio
+            if not counting and prev_slope > 0 and slope <= 0 and current > threshold:
+                peaks.append(sample)
+                counting = True  # Start counting samples
+            elif counting and current < threshold:
+                counting = False  # Stop counting samples
         
-peaks_list, ppi_list, hr_list = get_samples(data, 5000)
-for i in range(len(hr_list)):
-    print(hr_list[i])
+        for i in range(1, len(peaks)):
+            ppi_samples = peaks[i] - peaks[i - 1]
+            ppi_milliseconds.append(ppi_samples * sampling_interval_ms)  # Calculate PPI in milliseconds
+
+        i = 0
+        while len(hr) < max_hr_count:
+            if i >= len(ppi_milliseconds):
+                break
+            heart_rate = 60 / (ppi_milliseconds[i] / 1000)  # Convert milliseconds back to seconds for heart rate calculation
+            if min_hr <= heart_rate <= max_hr:
+                hr.append(heart_rate)
+            i += 1
+        
+    return peaks, ppi_milliseconds, hr
+
+
+result_peaks, ppi_milliseconds, hr = calculate_ppi_and_hr(data)
+
+for i in range(len(result_peaks)):
+    print("peaks", result_peaks[i])
+
+for i in range(len(ppi_milliseconds)):
+    print("ppi_millisecond", ppi_milliseconds[i])
+    
+for i in range(len(hr)):
+    print("hr", hr[i])
