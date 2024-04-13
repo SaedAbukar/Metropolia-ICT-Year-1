@@ -58,11 +58,11 @@ def calculate_ppi_and_hr(data, sample_rate=250, min_hr=30, max_hr=200, max_hr_co
 
 result_peaks, ppi_milliseconds, hr = calculate_ppi_and_hr(data)
 
-for i in range(len(result_peaks)):
-    print("peaks", result_peaks[i])
+#for i in range(len(result_peaks)):
+    #print("peaks", result_peaks[i])
 
-for i in range(len(ppi_milliseconds)):
-    print("ppi_millisecond", ppi_milliseconds[i])
+#for i in range(len(ppi_milliseconds)):
+    #print("ppi_millisecond", ppi_milliseconds[i])
     
 for i in range(len(hr)):
-    print("hr", hr[i])
+    print("hr %s:" % i, hr[i])
