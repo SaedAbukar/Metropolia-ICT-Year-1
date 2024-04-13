@@ -9,15 +9,15 @@ def scale_data(data, min_val, max_val):
     return max(0, min(int(scaled_data), 63))
 
 
-def plot_scaled_data_to_oled(data, sample_rate=250, max_samples_per_plot=5, screen_height=64):
+def plot_scaled_data_to_oled(data, sample_rate=250, max_samples_per_plot=5, screen_height=64, screen_width=128):
     oled.fill(0)
     current = data.get()
     maximum = minimum = current
     sample = 0
     window = []
-    scaled_window = []
+    sampling_interval = 1.0 / sample_rate
+    horizontal_scaling = int(screen_width * max_samples_per_plot * sampling_interval)
     
-
     for i in range(sample_rate):
         current = data.get()  # Get the next data point
         
@@ -31,9 +31,9 @@ def plot_scaled_data_to_oled(data, sample_rate=250, max_samples_per_plot=5, scre
         
         if len(window) == max_samples_per_plot:
             scaled_window = [scale_data(val, minimum, maximum) for val in window]
-            for i, val in enumerate(scaled_window):
-                oled.pixel((sample + i) // max_samples_per_plot, int(screen_height - 1 - val), 1)
             
+            for i, val in enumerate(scaled_window):
+                oled.pixel((sample + i) // horizontal_scaling, int(screen_height - 1 - val), 1)
             
             window.clear()
             
@@ -46,8 +46,7 @@ oled_height = 64
 oled = SSD1306_I2C(oled_width, oled_height, i2c)
 
 # Initialize data stream
-data = Filefifo(10, name='capture03_250Hz.txt')     
+data = Filefifo(10, name='capture02_250Hz.txt')     
 
 while True:
     plot_scaled_data_to_oled(data)
-

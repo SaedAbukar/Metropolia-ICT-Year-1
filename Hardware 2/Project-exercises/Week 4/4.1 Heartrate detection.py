@@ -2,8 +2,8 @@ from filefifo import Filefifo
 
 data = Filefifo(10, name='capture03_250Hz.txt')
 
-# Define the sampling interval (ts) in seconds
-sample_rate = 250  # Example: Assuming 250 Hz sampling rate
+
+sample_rate = 250 
 sampling_interval = 1.0 / sample_rate
 
 
@@ -22,21 +22,26 @@ def calculate_ppi_and_hr(data, sample_rate=250, min_hr=30, max_hr=200, max_hr_co
     
     sampling_interval_ms = (1 / sample_rate) * 1000  # Calculate sampling interval in milliseconds
 
-    while len(hr) < max_hr_count:
-        if data.has_data():# Loop until max_hr_count heart rates are calculated
+    while len(hr) < max_hr_count: # Loop until max_hr_count heart rates are calculated
+        if data.has_data():
             prev = current
             current = data.get()  # Get the next data point
+            
             if current > maximum:
                 maximum = current
+            
             elif current < minimum:
                 minimum = current
+            
             sample += 1
             prev_slope = slope
             slope = current - prev
             threshold = minimum + (maximum - minimum) * ratio
+            
             if not counting and prev_slope > 0 and slope <= 0 and current > threshold:
                 peaks.append(sample)
                 counting = True  # Start counting samples
+            
             elif counting and current < threshold:
                 counting = False  # Stop counting samples
         
@@ -45,10 +50,13 @@ def calculate_ppi_and_hr(data, sample_rate=250, min_hr=30, max_hr=200, max_hr_co
             ppi_milliseconds.append(ppi_samples * sampling_interval_ms)  # Calculate PPI in milliseconds
 
         i = 0
-        while len(hr) < max_hr_count:
+        
+        while len(hr) < max_hr_count: 
             if i >= len(ppi_milliseconds):
                 break
+            
             heart_rate = 60 / (ppi_milliseconds[i] / 1000)  # Convert milliseconds back to seconds for heart rate calculation
+            
             if min_hr <= heart_rate <= max_hr:
                 hr.append(heart_rate)
             i += 1
