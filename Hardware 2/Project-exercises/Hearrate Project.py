@@ -14,7 +14,7 @@ display = SSD1306_I2C(128, 64, i2c)
 class isr_adc: 
     def __init__(self, adc_pin_nr):
         self.av = ADC(adc_pin_nr) # sensor AD channel
-        self.samples = Fifo(750) # fifo where ISR will put samples
+        self.samples = Fifo(1000) # fifo where ISR will put samples
         self.dbg = Pin(0, Pin.OUT) # debug GPIO pin for measuring timing with oscilloscope
         
     def handler(self, tid):
@@ -122,7 +122,7 @@ def show_hr(bpm, data, minimum, maximum):
 
     if bpm:
         display.text("%d bpm" % bpm, 12, 0)
-        print("%d bpm" % bpm)
+        #print("%d bpm" % bpm)
         
     display.show()
 
@@ -141,7 +141,7 @@ while True:
         value = sensor.samples.get()
         count += 1
         
-        if count % 750 == 0:
+        if count % 1000 == 0:
             count = 0
             data = lpf2(sensor.samples.data)
 #             print("raw_data", sensor.samples.data)
