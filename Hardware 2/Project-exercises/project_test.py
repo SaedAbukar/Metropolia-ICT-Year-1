@@ -49,12 +49,6 @@ def detect_peaks(data, sample_rate=250):
         sample += 1
         threshold_on = (minimum + maximum * 3) // 4
         threshold_off = (minimum + maximum) // 2
-#         print("max %s" % sample, maximum)
-#         print("thres_on %s" % sample, threshold_on)
-#         print("curr %s" % sample, curr)
-#         print("peaks %s" % sample, peaks)
-#         print("thres_off %s" % sample, threshold_off)
-#         print("min %s" % sample, minimum)
         if not counting and curr >= threshold_on:
             counting = True
             peaks.append(sample)
@@ -67,7 +61,7 @@ def detect_peaks(data, sample_rate=250):
 def lpf1(prev_value, new_value, alpha=0.85):
     return alpha * prev_value + (1 - alpha) * new_value
 
-def lpf2(data, filtering_amount=65):
+def lpf2(data, filtering_amount=50):
     lastvals = []
     filtered_range = []
     for value in data:
@@ -94,17 +88,29 @@ def calculate_ppi_ms(peaks, sample_rate=250):
 
 
 def calculate_hr(ppi_ms, min_hr=30, max_hr=200):
-    
     hr = []
     
     for i in range(len(ppi_ms)):
-        heart_rate = 60 / (ppi_ms[i] / 1000)  # Convert milliseconds back to seconds for heart rate calculation
+        heart_rate = 60 / (ppi_ms[i] / 1000)  # Convert milliseconds to seconds, then calculate heart rate
         if min_hr <= heart_rate <= max_hr:
-            return heart_rate
+            hr.append(heart_rate)  # Collect heart rates that meet the range conditions
     
-    current_hr = sum(hr) / len(hr)
+    if not hr:  # If 'hr' is empty, there's no valid heart rate to calculate.
+        return None  # Return None or an appropriate default value
     
-    return current_hr
+    # Sort the list of heart rates to get the median
+    hr_sorted = sorted(hr)
+
+    n = len(hr_sorted)
+    if n % 2 == 1:
+        # Odd number of elements: the median is the middle element.
+        current_hr = hr_sorted[n // 2]
+    else:
+        # Even number of elements: the median is the average of the two middle elements.
+        current_hr = (hr_sorted[(n // 2) - 1] + hr_sorted[n // 2]) / 2
+    
+    return current_hr  # Return the median heart rate
+
 
 def show_hr(bpm, data, minimum, maximum):
     global last_y
