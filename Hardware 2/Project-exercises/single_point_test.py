@@ -11,49 +11,13 @@ led = Signal(Pin("LED", Pin.OUT), invert=True)
 i2c = I2C(1, scl=Pin(15), sda=Pin(14), freq=400000)
 display = SSD1306_I2C(128, 64, i2c)
 
-class isr_adc: 
-    def __init__(self, adc_pin_nr):
-        self.av = ADC(adc_pin_nr) # sensor AD channel
-        self.samples = Fifo(250) # fifo where ISR will put samples
-        self.dbg = Pin(0, Pin.OUT) # debug GPIO pin for measuring timing with oscilloscope
-        
-    def handler(self, tid):
-        self.samples.put(self.av.read_u16())
-        self.dbg.toggle()
-     
-     
-class LowPassFilter:
-    def __init__(self, filtering_amount=63):
-        # Initialize with the filtering amount and an empty list for previous values
-        self.filtering_amount = filtering_amount
-        self.lastvals = []
-
-    def lpf_single(self, value):
-        """Apply low-pass filter to a single value and maintain state."""
-        if len(self.lastvals) < self.filtering_amount:
-            # If the list is not full yet, just add the value and return the raw value
-            self.lastvals.append(value)
-            # Initial condition: return the current value when the window isn't full
-            filtered_value = int((value + sum(self.lastvals)) / (len(self.lastvals)))
-        else:
-            # If the list is full, calculate the filtered value and update the list
-            filtered_value = int((value + sum(self.lastvals)) / self.filtering_amount)
-            # Remove the oldest value and add the new one
-            self.lastvals.pop(0)
-            self.lastvals.append(value)
-
-        return filtered_value  # Return the filtered result
-
-
 class PeakDetector:
     def __init__(self, sample_rate=250, sample_threshold=250):
         self.sample_rate = sample_rate
         self.sample_threshold = sample_threshold
         self.sampling_interval = (1 / sample_rate)  # Sampling interval in seconds
         self.sampling_interval_ms = (1 / sample_rate) * 1000
-        #self.data = sensor #Filefifo(10, name='capture01_250Hz.txt')
-        self.data = isr_adc(26)
-        self.tmr = Piotimer(freq=self.sample_rate, callback=self.data.handler)
+        self.data = Filefifo(10, name='capture01_250Hz.txt')
         self.peaks = []
         self.sample_count = 0
         self.count = 0
@@ -63,14 +27,19 @@ class PeakDetector:
         self.threshold_on = self.minimum + (self.maximum - self.minimum) * 0.75
         self.threshold_off = self.minimum + (self.maximum - self.minimum) * 0.70
         self.detecting_peaks = False
-        self.filtered = LowPassFilter(65)
         
         self.reset()  # Reset state variables at initialization
 
     def reset(self):
-        """Reset variables."""
+        """Reset all state variables."""
         self.minimum = float('inf')
         self.maximum = float('-inf')
+#         self.sample_count = 0
+#         self.count = 0
+#         self.peaks = []
+#         self.threshold_on = None
+#         self.threshold_off = None
+#         self.detecting_peaks = False
 
     def update_minmax(self, value):
         """Update minimum and maximum based on the given value."""
@@ -87,38 +56,33 @@ class PeakDetector:
         self.threshold_off = self.minimum + (self.maximum - self.minimum) * 0.70
     
     def detect_peaks(self):
-        while self.data.samples.has_data():
-            raw_value = self.data.samples.get()  # Get the current data point from ADC
-            
-            # Apply the low-pass filter to smooth the data
-            filtered_value = self.filtered.lpf_single(raw_value)  # Filter the raw ADC data
+        while self.data.has_data():
+            curr = self.data.get()  # Get the current data point
             self.count += 1
-            self.update_minmax(filtered_value)
+            self.update_minmax(curr)
             
             if self.sample_count % self.sample_threshold == 0:
                 # Calculate thresholds after 250 samples
                 self.calculate_thresholds()
                 #print(self.threshold_on)
-            #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
+#                 print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
                 self.reset()
-                #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off)
+#             print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off)
 
-            if not self.detecting_peaks and filtered_value >= self.threshold_on:
+            if not self.detecting_peaks and curr >= self.threshold_on:
                 #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
                 #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off)
                 #print(self.count)
                 self.detecting_peaks = True
                 self.peaks.append(self.count)
-            if self.detecting_peaks and filtered_value <= self.threshold_off:
+            if self.detecting_peaks and curr <= self.threshold_off:
                 self.detecting_peaks = False
                 #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off) 
-            #print(self.peaks)
-            #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
+#             print(self.peaks)
                 
                 
-#             if len(self.peaks) > 1:
-#                 #print(self.peaks)
-            return self.peaks
+            if len(self.peaks) > 1:
+                return self.peaks
                 
                 
     def calculate_ppi(self, min_ppi=400, max_ppi=1300):
@@ -185,40 +149,26 @@ class PeakDetector:
         display.show()
 
 
-
-sample_rate = 250 
-sampling_interval = 1.0 / sample_rate
 peak_detector = PeakDetector(sample_rate=250, sample_threshold=250)
 
 i = 0
 j = 0
 while True:
+    peaks = peak_detector.detect_peaks()
+    ppi = peak_detector.calculate_ppi()
     i += 1
-    if i % 250 == 0:
-        i = 0
-        peaks = peak_detector.detect_peaks()
-        if peaks:
-            #print(ppi[-1])
+    if i >= 250:
+        j += 1
+        if len(peaks) > 1:# Check if there are at least two peaks available
+            interval = peaks[-1] - peaks[-2]  # Get the most recent PP interval in samples
+            current_ppi = (peaks[-1] - peaks[-2]) * 4
             ppi = peak_detector.calculate_ppi()
-            if ppi:
-                bpm = peak_detector.calculate_bpm(ppi[-1])
-                print("PPI:", ppi[-1], "BPM", bpm)
-            
-    
-#     i += 1
-#     if i >= 250:
-#         j += 1
-#         if len(peaks) >= 1:# Check if there are at least two peaks available
-#             interval = peaks[-1] - peaks[-2]  # Get the most recent PP interval in samples
-#             current_ppi = (peaks[-1] - peaks[-2]) * 4
-#             ppi = peak_detector.calculate_ppi()
-#             bpm = peak_detector.calculate_bpm(ppi[-1])  # Calculate heart rate in bpm using sample rate
-#             #print(peaks)
+            bpm = peak_detector.calculate_bpm(ppi[-1])  # Calculate heart rate in bpm using sample rate
+            #print(peaks)
 #             print("PPI %s:" % j, ppi[-1])
 #             print("BPM %s:" % j, bpm)
-#             peak_detector.show_bpm(bpm)
-#             i = 0
-
+            peak_detector.show_bpm(bpm)
+            i = 0
 
 
 
