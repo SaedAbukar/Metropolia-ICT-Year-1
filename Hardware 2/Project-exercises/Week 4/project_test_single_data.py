@@ -51,19 +51,17 @@ class PeakDetector:
         self.sample_threshold = sample_threshold
         self.sampling_interval = (1 / sample_rate)  # Sampling interval in seconds
         self.sampling_interval_ms = (1 / sample_rate) * 1000
-        #self.data = sensor #Filefifo(10, name='capture01_250Hz.txt')
         self.data = isr_adc(26)
         self.tmr = Piotimer(freq=self.sample_rate, callback=self.data.handler)
         self.peaks = []
         self.sample_count = 0
         self.count = 0
-        self.peaks = []
         self.minimum = 0
         self.maximum = 0
         self.threshold_on = self.minimum + (self.maximum - self.minimum) * 0.75
         self.threshold_off = self.minimum + (self.maximum - self.minimum) * 0.70
         self.detecting_peaks = False
-        self.filtered = LowPassFilter(65)
+        self.filtered = LowPassFilter(63)
         
         self.reset()  # Reset state variables at initialization
 
@@ -98,6 +96,13 @@ class PeakDetector:
             if self.sample_count % self.sample_threshold == 0:
                 # Calculate thresholds after 250 samples
                 self.calculate_thresholds()
+                if len(self.peaks) >= 10:
+                    #print(peaks)
+                    ppi = peak_detector.calculate_ppi(self.peaks)
+                    if ppi:
+                        bpm = peak_detector.calculate_bpm(ppi[-1])
+                        print("PPI:", ppi[-1], "BPM", bpm)
+                        self.show_bpm(bpm, filtered_value, self.maximum, self.minimum)
                 #print(self.threshold_on)
             #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
                 self.reset()
@@ -114,18 +119,20 @@ class PeakDetector:
                 #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off) 
             #print(self.peaks)
             #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
+#         if self.peaks:
+#             #print(peaks)
+#             ppi = peak_detector.calculate_ppi(self.peaks)
+#             if ppi:
+#                 bpm = peak_detector.calculate_bpm(ppi[-1])
+#                 print("PPI:", ppi[-1], "BPM", bpm)
+#                 self.show_bpm(bpm, filtered_value, self.maximum, self.minimum)
                 
                 
-#             if len(self.peaks) > 1:
-#                 #print(self.peaks)
-            return self.peaks
-                
-                
-    def calculate_ppi(self, min_ppi=400, max_ppi=1300):
-        """Calculate peak-to-peak intervals (PPI)."""
-        peaks = peak_detector.detect_peaks()
-        if len(self.peaks) < 1:
-            return None  # Cannot calculate intervals with fewer than 2 peaks
+    def calculate_ppi(self, peaks, min_ppi=400, max_ppi=1300):
+#         """Calculate peak-to-peak intervals (PPI)."""
+#         peaks = peak_detector.detect_peaks()
+#         if len(self.peaks) < 1:
+#             return None  # Cannot calculate intervals with fewer than 2 peaks
         
         # Calculate the intervals between consecutive peaks
         self.ppi = []
@@ -163,17 +170,18 @@ class PeakDetector:
         
         return int(current_hr)  # Return the median heart rate
     
-    def show_bpm(self, bpm):
-#         last_y = 0
-# 
-#         display.vline(0, 0, 64, 0)
-#         display.scroll(-1, 0)  # Scroll left 1 pixel
-# 
-#         if maximum - minimum > 0:
-#             # Draw beat line.
-#             y = 64 - int(32 * (data[-1] - minimum) / (maximum - minimum))
-#             display.line(125, last_y, 126, y, 1)
-#             last_y = y
+    
+    def show_bpm(self, bpm, val, maximum, minimum):
+        last_y = 0
+
+        display.vline(0, 0, 64, 0)
+        display.scroll(-1, 0)  # Scroll left 1 pixel
+
+        if maximum - minimum > 0:
+            # Draw beat line.
+            y = 64 - int(32 * (val - minimum) / (maximum - minimum))
+            display.line(125, last_y, 126, y, 1)
+            last_y = y
 
         # Clear top text area.
         display.fill_rect(0, 0, 128, 16, 0)  # Clear the top text area
@@ -190,34 +198,10 @@ sample_rate = 250
 sampling_interval = 1.0 / sample_rate
 peak_detector = PeakDetector(sample_rate=250, sample_threshold=250)
 
-i = 0
-j = 0
+
 while True:
-    i += 1
-    if i % 250 == 0:
-        i = 0
-        peaks = peak_detector.detect_peaks()
-        if peaks:
-            #print(ppi[-1])
-            ppi = peak_detector.calculate_ppi()
-            if ppi:
-                bpm = peak_detector.calculate_bpm(ppi[-1])
-                print("PPI:", ppi[-1], "BPM", bpm)
-            
-    
-#     i += 1
-#     if i >= 250:
-#         j += 1
-#         if len(peaks) >= 1:# Check if there are at least two peaks available
-#             interval = peaks[-1] - peaks[-2]  # Get the most recent PP interval in samples
-#             current_ppi = (peaks[-1] - peaks[-2]) * 4
-#             ppi = peak_detector.calculate_ppi()
-#             bpm = peak_detector.calculate_bpm(ppi[-1])  # Calculate heart rate in bpm using sample rate
-#             #print(peaks)
-#             print("PPI %s:" % j, ppi[-1])
-#             print("BPM %s:" % j, bpm)
-#             peak_detector.show_bpm(bpm)
-#             i = 0
+    peaks = peak_detector.detect_peaks()
+
 
 
 
