@@ -60,8 +60,9 @@ class PeakDetector:
         self.maximum = 0
         self.threshold_on = self.minimum + (self.maximum - self.minimum) * 0.75
         self.threshold_off = self.minimum + (self.maximum - self.minimum) * 0.70
+        self.prev_sample = 0
         self.detecting_peaks = False
-        self.filtered = LowPassFilter(63)
+        self.filtered = LowPassFilter(63) #Viet 25 and Saed 63
         
         self.reset()  # Reset state variables at initialization
 
@@ -96,8 +97,8 @@ class PeakDetector:
             if self.sample_count % self.sample_threshold == 0:
                 # Calculate thresholds after 250 samples
                 self.calculate_thresholds()
-                if len(self.peaks) >= 10:
-                    #print(peaks)
+                if len(self.peaks) >= 1:
+                    print(self.peaks)
                     ppi = peak_detector.calculate_ppi(self.peaks)
                     if ppi:
                         bpm = peak_detector.calculate_bpm(ppi[-1])
@@ -108,14 +109,21 @@ class PeakDetector:
                 self.reset()
                 #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off)
 
-            if not self.detecting_peaks and filtered_value >= self.threshold_on:
+            if not self.detecting_peaks and filtered_value >= self.threshold_on and (self.count - self.prev_sample) > 150:
                 #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
                 #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off)
-                #print(self.count)
+#                 print("Sample", self.count)
+#                 print("Prev Sample", self.prev_sample)
                 self.detecting_peaks = True
                 self.peaks.append(self.count)
             if self.detecting_peaks and filtered_value <= self.threshold_off:
                 self.detecting_peaks = False
+            
+            if len(self.peaks) >= 1:
+                self.prev_sample = self.peaks[-1]
+            
+            #print("Sample", self.peaks[-1])
+            #print("Prev Sample", self.prev_sample)
                 #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off) 
             #print(self.peaks)
             #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
