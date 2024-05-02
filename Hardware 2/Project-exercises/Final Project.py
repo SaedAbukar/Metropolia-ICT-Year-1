@@ -43,6 +43,35 @@ class LowPassFilter:
             self.lastvals.append(value)
 
         return filtered_value  # Return the filtered result
+    
+    
+class Avg_peaks:
+    def __init__(self, size=9):
+        self.size = size
+        self.data = []
+
+    def add(self, item):
+        if len(self.data) >= self.size:
+            self.data.pop(0)  # Maintain fixed size
+        self.data.append(item)
+
+    def average(self):
+        if len(self.data) == 0:
+            return 0  # Avoid division by zero
+        return sum(self.data) / len(self.data)
+    
+    def median(self):
+        if len(self.data) == 0:
+            return 0  # Handle empty list scenario
+        sorted_data = sorted(self.data)  # Sort the list
+        n = len(sorted_data)
+        if n % 2 == 1:
+            # If the length is odd, return the middle element
+            return sorted_data[n // 2]
+        else:
+            # If the length is even, return the average of the two middle elements
+            return (sorted_data[(n // 2) - 1] + sorted_data[n // 2]) / 2
+
 
 
 class PeakDetector:
@@ -54,6 +83,9 @@ class PeakDetector:
         self.data = isr_adc(26)
         self.tmr = Piotimer(freq=self.sample_rate, callback=self.data.handler)
         self.peaks = []
+        self.avg_peaks = Avg_peaks(5)
+        self.hr = Avg_peaks(15)
+        self.interval_avg = 0
         self.sample_count = 0
         self.count = 0
         self.minimum = 0
@@ -97,45 +129,44 @@ class PeakDetector:
             if self.sample_count % self.sample_threshold == 0:
                 # Calculate thresholds after 250 samples
                 self.calculate_thresholds()
-                if len(self.peaks) >= 1:
+                self.reset()
+                if len(self.peaks) > 10:
                     #print(self.peaks)
                     ppi = peak_detector.calculate_ppi(self.peaks)
                     if ppi:
                         bpm = peak_detector.calculate_bpm(ppi[-1])
-                        print("PPI:", ppi[-1], "BPM", bpm)
+                        print("BPM", bpm)
                         self.show_bpm(bpm, filtered_value, self.maximum, self.minimum)
-                #print(self.threshold_on)
-            #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
-                self.reset()
-                #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off)
-
-            if not self.detecting_peaks and filtered_value >= self.threshold_on and (self.count - self.prev_sample) > 200:
-                #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
-                #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off)
-#                 print("Sample", self.count)
-#                 print("Prev Sample", self.prev_sample)
-                self.detecting_peaks = True
-                self.peaks.append(self.count)
+        
+            if self.peaks:
+                self.interval_avg = self.peaks_avg(self.peaks)
+                
+            if not self.detecting_peaks and filtered_value >= self.threshold_on and (self.count - self.prev_sample) > 75:
+                if len(self.peaks) >= 10:
+                    if -50 < (self.count - self.prev_sample) - self.interval_avg < 50:
+                        self.detecting_peaks = True
+                        self.peaks.append(self.count)
+                else:   
+                    self.detecting_peaks = True
+                    self.peaks.append(self.count)
+                self.prev_sample = self.count
             if self.detecting_peaks and filtered_value <= self.threshold_off:
                 self.detecting_peaks = False
-            
-            if len(self.peaks) >= 1:
-                self.prev_sample = self.peaks[-1]
-            
-            #print("Sample", self.peaks[-1])
-            #print("Prev Sample", self.prev_sample)
-                #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off) 
-            #print(self.peaks)
-            #print(self.detecting_peaks, self.threshold_on, curr, self.threshold_off, self.minimum, self.maximum)
-#         if self.peaks:
-#             #print(peaks)
-#             ppi = peak_detector.calculate_ppi(self.peaks)
-#             if ppi:
-#                 bpm = peak_detector.calculate_bpm(ppi[-1])
-#                 print("PPI:", ppi[-1], "BPM", bpm)
-#                 self.show_bpm(bpm, filtered_value, self.maximum, self.minimum)
+
                 
-                
+    def peaks_avg(self, peaks):
+        if len(peaks) > 1:
+            for i in range(len(peaks)):
+                interval = peaks[i] - peaks[i - 1]
+                if 75 < interval < 375:
+                    self.avg_peaks.add(interval)
+        else:
+            self.avg_peaks.add(peaks[0])
+        #median = self.avg_peaks.median()
+        avg = self.avg_peaks.average()
+        return avg
+    
+    
     def calculate_ppi(self, peaks, min_ppi=400, max_ppi=1300):
 #         """Calculate peak-to-peak intervals (PPI)."""
 #         peaks = peak_detector.detect_peaks()
@@ -154,29 +185,36 @@ class PeakDetector:
             avg_ppi = int(sum(self.ppi) / len(self.ppi))
             
         return self.ppi
+    
+    def avg_ppi(self, peaks, min_ppi=400, max_ppi=1300):
+        
+        # Calculate the intervals between consecutive peaks
+        self.ppi = []
+        avg_ppi = 0
+        for i in range(1, len(self.peaks)):
+            self.interval = (self.peaks[i] - self.peaks[i - 1]) * self.sampling_interval_ms
+            if min_ppi < self.interval < max_ppi:
+                self.ppi.append(self.interval)
+        
+        if len(self.ppi) > 1:
+            avg_ppi = int(sum(self.ppi) / len(self.ppi))
+            
+        return avg.ppi
 
 
     def calculate_bpm(self, ppi, sample_rate=250, min_hr=30, max_hr=200):
-        hr = []
         heart_rate = 60 / (ppi / 1000)  # Convert milliseconds to seconds, then calculate heart rate
         if min_hr <= heart_rate <= max_hr:
-            hr.append(heart_rate)  # Collect heart rates that meet the range conditions
+            #print(heart_rate)
+            self.hr.add(heart_rate)  # Collect heart rates that meet the range conditions
         
-        if not hr:  # If 'hr' is empty, there's no valid heart rate to calculate.
+        if not self.hr:  # If 'hr' is empty, there's no valid heart rate to calculate.
             return None  # Return None or an appropriate default value
         
-        # Sort the list of heart rates to get the median
-        hr_sorted = sorted(hr)
-
-        n = len(hr_sorted)
-        if n % 2 == 1:
-            # Odd number of elements: the median is the middle element.
-            current_hr = hr_sorted[n // 2]
-        else:
-            # Even number of elements: the median is the average of the two middle elements.
-            current_hr = (hr_sorted[(n // 2) - 1] + hr_sorted[n // 2]) / 2
-        
-        return int(current_hr)  # Return the median heart rate
+        median_hr = self.hr.median()
+        avg_hr = self.hr.average()
+        print(self.hr.data)
+        return int(avg_hr)  # Return the median heart rate
     
     
     def show_bpm(self, bpm, val, maximum, minimum):
@@ -199,6 +237,36 @@ class PeakDetector:
             #print("%d bpm" % bpm)
             
         display.show()
+        
+    
+    def calculate_hrv_metrics(PPI_array):
+        # Calculate Mean PPI
+        sumPPI = sum(PPI_array)
+        mean_PPI = round(sumPPI / len(PPI_array), 0)
+        mean_PPI = int(mean_PPI)
+
+        # Calculate Mean HR
+        mean_HR = round(60 * 1000 / mean_PPI, 0)
+        mean_HR = int(mean_HR)
+
+        # Calculate RMSSD
+        summary_RMSSD = sum((PPI_array[i + 1] - PPI_array[i])**2 for i in range(len(PPI_array) - 1))
+        RMSSD = round((summary_RMSSD / (len(PPI_array) - 1))**(1/2), 0)
+        RMSSD = int(RMSSD)
+
+        # Calculate SDNN
+        summary_SDNN = sum((ppi - mean_PPI) ** 2 for ppi in PPI_array)
+        SDNN = round((summary_SDNN / (len(PPI_array) - 1))**(1/2), 0)
+        SDNN = int(SDNN)
+
+        # Return a dictionary with all metrics
+        return {
+            'mean_PPI': mean_PPI,
+            'mean_HR': mean_HR,
+            'RMSSD': RMSSD,
+            'SDNN': SDNN
+        }
+
 
 
 class Encoder:
@@ -306,7 +374,7 @@ def main_menu(user_state):
             update_display(oled, menu)  # Update the display to reflect current selection
             time.sleep_ms(100)
         
-        if rot.fifo.has_data() and rot.turning:
+        while rot.fifo.has_data() and rot.turning:
             event = rot.fifo.get()
             if event == 1:  # Clockwise rotation
                 menu.select_next()
@@ -319,11 +387,12 @@ def main_menu(user_state):
                 selected = menu.get_selected_option()  # Ensure this is running without issues
                 if selected == menu_options[0]:
                     rot.turning = False
-                    peak_detector.data.measuring = True
-                    user_state = "measuring"
+                    display.fill(0)
                     measurement()
                     time.sleep_ms(300)
                     display.fill(0)
+                    peak_detector.data.measuring = True
+                    user_state = "measuring"
                     
         peaks = peak_detector.detect_peaks()
         if SW1() == 0:
@@ -356,3 +425,4 @@ while True:
             if user_state == "menu":
                 main_menu(user_state)
                     
+
