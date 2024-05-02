@@ -8,7 +8,6 @@ import time
 micropython.alloc_emergency_exception_buf(200)
 
 
-
 class isr_adc: 
     def __init__(self, adc_pin_nr):
         self.av = ADC(adc_pin_nr) # sensor AD channel
@@ -43,8 +42,8 @@ class LowPassFilter:
             self.lastvals.append(value)
 
         return filtered_value  # Return the filtered result
-    
-    
+
+
 class Avg_peaks:
     def __init__(self, size=9):
         self.size = size
@@ -73,7 +72,6 @@ class Avg_peaks:
             return (sorted_data[(n // 2) - 1] + sorted_data[n // 2]) / 2
 
 
-
 class PeakDetector:
     def __init__(self, sample_rate=250, sample_threshold=250):
         self.sample_rate = sample_rate
@@ -88,13 +86,14 @@ class PeakDetector:
         self.interval_avg = 0
         self.sample_count = 0
         self.count = 0
-        self.minimum = 0
-        self.maximum = 0
+        self.minimum = 32000
+        self.maximum = 32000
         self.threshold_on = self.minimum + (self.maximum - self.minimum) * 0.75
         self.threshold_off = self.minimum + (self.maximum - self.minimum) * 0.70
         self.prev_sample = 0
         self.detecting_peaks = False
         self.filtered = LowPassFilter(63) #Viet 25 and Saed 63
+        self.hrv_calculated = False
         
         self.reset()  # Reset state variables at initialization
 
@@ -152,8 +151,44 @@ class PeakDetector:
                 self.prev_sample = self.count
             if self.detecting_peaks and filtered_value <= self.threshold_off:
                 self.detecting_peaks = False
-
                 
+                
+    def HRV_logic(self):                        
+        while self.data.samples.has_data():
+            raw_value = self.data.samples.get()
+            filtered_value = self.filtered.lpf_single(raw_value)  
+            self.count += 1
+            self.update_minmax(filtered_value)
+            samplerate = 5000
+            
+            
+            if self.sample_count % self.sample_threshold == 0:
+                # Calculate thresholds after 250 samples
+                self.calculate_thresholds()
+                self.reset()
+        
+            if self.peaks:
+                self.interval_avg = self.peaks_avg(self.peaks)
+                
+            if not self.detecting_peaks and filtered_value >= self.threshold_on and (self.count - self.prev_sample) > 75:
+                if len(self.peaks) >= 10:
+                    if -50 < (self.count - self.prev_sample) - self.interval_avg < 50:
+                        self.detecting_peaks = True
+                        self.peaks.append(self.count)
+                else:   
+                    self.detecting_peaks = True
+                    self.peaks.append(self.count)
+                self.prev_sample = self.count
+            if self.detecting_peaks and filtered_value <= self.threshold_off:
+                self.detecting_peaks = False
+            
+            if len(self.peaks) == 15:
+                if not self.hrv_calculated:
+                    ppi = peak_detector.calculate_ppi(self.peaks)
+                    calculate_hrv(ppi)
+                    self.hrv_calculated = True
+      
+      
     def peaks_avg(self, peaks):
         if len(peaks) > 1:
             for i in range(len(peaks)):
@@ -165,15 +200,10 @@ class PeakDetector:
         #median = self.avg_peaks.median()
         avg = self.avg_peaks.average()
         return avg
-    
-    
+                
+                
+                
     def calculate_ppi(self, peaks, min_ppi=400, max_ppi=1300):
-#         """Calculate peak-to-peak intervals (PPI)."""
-#         peaks = peak_detector.detect_peaks()
-#         if len(self.peaks) < 1:
-#             return None  # Cannot calculate intervals with fewer than 2 peaks
-        
-        # Calculate the intervals between consecutive peaks
         self.ppi = []
         avg_ppi = 0
         for i in range(1, len(self.peaks)):
@@ -185,23 +215,30 @@ class PeakDetector:
             avg_ppi = int(sum(self.ppi) / len(self.ppi))
             
         return self.ppi
+
+    # OLD HR CALCULATOR
+    def calculate_bpm1(self, ppi, sample_rate=250, min_hr=30, max_hr=200):
+        hr = []
+        heart_rate = 60 / (ppi / 1000)  
+        if min_hr <= heart_rate <= max_hr:
+            hr.append(heart_rate) 
+        
+        if not hr:  # If 'hr' is empty, there's no valid heart rate to calculate.
+            return None  
+        
+        hr_sorted = sorted(hr)
+
+        n = len(hr_sorted)
+        if n % 2 == 1:
+            # Odd number of elements: the median is the middle element.
+            current_hr = hr_sorted[n // 2]
+        else:
+            # Even number of elements: the median is the average of the two middle elements.
+            current_hr = (hr_sorted[(n // 2) - 1] + hr_sorted[n // 2]) / 2
+        
+        return int(current_hr)  # Return the median heart rate
     
-    def avg_ppi(self, peaks, min_ppi=400, max_ppi=1300):
-        
-        # Calculate the intervals between consecutive peaks
-        self.ppi = []
-        avg_ppi = 0
-        for i in range(1, len(self.peaks)):
-            self.interval = (self.peaks[i] - self.peaks[i - 1]) * self.sampling_interval_ms
-            if min_ppi < self.interval < max_ppi:
-                self.ppi.append(self.interval)
-        
-        if len(self.ppi) > 1:
-            avg_ppi = int(sum(self.ppi) / len(self.ppi))
-            
-        return avg.ppi
-
-
+    # NEW HR CALCULATOR
     def calculate_bpm(self, ppi, sample_rate=250, min_hr=30, max_hr=200):
         heart_rate = 60 / (ppi / 1000)  # Convert milliseconds to seconds, then calculate heart rate
         if min_hr <= heart_rate <= max_hr:
@@ -213,59 +250,31 @@ class PeakDetector:
         
         median_hr = self.hr.median()
         avg_hr = self.hr.average()
-        print(self.hr.data)
-        return int(avg_hr)  # Return the median heart rate
-    
+        #print(self.hr.data)
+        return int(median_hr)  # Return the median heart rate
+
     
     def show_bpm(self, bpm, val, maximum, minimum):
         last_y = 0
         
+
         display.vline(0, 0, 64, 0)
-        display.scroll(-1, 0)  # Scroll left 1 pixel
+
+        display.scroll(-1, 0)  
 
         if maximum - minimum > 0:
-            # Draw beat line.
             y = 64 - int(32 * (val - minimum) / (maximum - minimum))
             display.line(125, last_y, 126, y, 1)
             last_y = y
 
-        # Clear top text area.
+
         display.fill_rect(0, 0, 128, 16, 0)  # Clear the top text area
 
         if bpm:
-            display.text("%d bpm" % bpm, 12, 0)
-            #print("%d bpm" % bpm)
-            
+            display.text("%d bpm" % bpm, 12, 0)            
         display.show()
         
-    
-    def calculate_hrv_metrics(PPI_array):
-        # Calculate Mean PPI
-        sumPPI = sum(PPI_array)
-        mean_PPI = round(sumPPI / len(PPI_array), 0)
-        mean_PPI = int(mean_PPI)
 
-        # Calculate Mean HR
-        mean_HR = round(60 * 1000 / mean_PPI, 0)
-        mean_HR = int(mean_HR)
-
-        # Calculate RMSSD
-        summary_RMSSD = sum((PPI_array[i + 1] - PPI_array[i])**2 for i in range(len(PPI_array) - 1))
-        RMSSD = round((summary_RMSSD / (len(PPI_array) - 1))**(1/2), 0)
-        RMSSD = int(RMSSD)
-
-        # Calculate SDNN
-        summary_SDNN = sum((ppi - mean_PPI) ** 2 for ppi in PPI_array)
-        SDNN = round((summary_SDNN / (len(PPI_array) - 1))**(1/2), 0)
-        SDNN = int(SDNN)
-
-        # Return a dictionary with all metrics
-        return {
-            'mean_PPI': mean_PPI,
-            'mean_HR': mean_HR,
-            'RMSSD': RMSSD,
-            'SDNN': SDNN
-        }
 
 
 
@@ -277,33 +286,31 @@ class Encoder:
         self.fifo = Fifo(30, typecode='i')  # milliseconds
         self.last_pressed_time = 0
         self.button_pressed = False
-        self.turning = True
         self.a.irq(handler=self.handler, trigger=Pin.IRQ_RISING, hard=True)
         self.c.irq(handler=self.button, trigger=Pin.IRQ_FALLING, hard=True)
         
     def handler(self, pin):
-        if self.turning:
-            if self.b.value():
-                self.fifo.put(-1)  # Counter-clockwise rotation
-            else:
-                self.fifo.put(1)  # Clockwise rotation
+        if self.b.value():
+            self.fifo.put(-1)  # Counter-clockwise rotation
+        else:
+            self.fifo.put(1)  # Clockwise rotation
             
     def button(self, pin):
         current_time = time.ticks_ms()
-        if self.turning:
-            if current_time - self.last_pressed_time < 200:
-                return
-            self.last_pressed_time = current_time
-            
-            self.fifo.put(0)
+        if current_time - self.last_pressed_time < 200:
+            return
+        self.last_pressed_time = current_time
+        
+        self.fifo.put(0)
        
     
 
 class Menu:
     def __init__(self, options, functions):
         self.options = options
-        self.selected_index = 0
         self.functions = functions
+        self.selected_index = 0
+
     def select_next(self):
         self.selected_index = (self.selected_index + 1) % len(self.options)
 
@@ -313,21 +320,89 @@ class Menu:
     def get_selected_option(self):
         return self.options[self.selected_index]
 
-    def process_events(self):
-        selected_function = self.functions[self.selected_index]
-        print(f"Selected function: {selected_function.__name__}")  # Add this line
+    def selected_function(self):
+        return self.functions[self.selected_index]
+    
 
 
-            
-class Logger:
-    def info(self):
-        print("This is an BPM.")
+#--------------------------------------------------#
+    # Calculation for HRV analysis
 
-    def warning(self):
-        print("This is HRV.")
+# Mean PPI calculation - (data is the PPI_array)
+def mean_ppi_cal(data):
+    sumPPI = max(data)
+    rounded_PPI = sumPPI/len(data)
+    return int(rounded_PPI)
 
-    def error(self):
-        print("This is KUBIOS.")
+# Mean HR calculation 
+def mean_hr_cal(meanPPI):
+    rounded_HR = round(60*1000/meanPPI, 0)
+    return int(rounded_HR)
+
+# RMSSD calculation
+def RMSSD_cal(data):
+    i = 0
+    summary = 0
+    while i < len(data)-1:
+        summary += (data[i+1]-data[i])**2
+        i += 1
+    rounded_RMSSD = round((summary/(len(data)-1))**(1/2), 0)
+    return int(rounded_RMSSD)
+
+# SDNN calculation
+def SDNN_cal(data, PPI):
+    summary = 0
+    for i in data:
+        summary += (i-PPI)**2
+    SDNN = (summary/(len(data)-1))**(1/2)
+    rounded_SDNN = round(SDNN, 0)
+    return int(rounded_SDNN)
+
+
+# Function to calculate HRV metrics without statistics module
+def calculate_hrv(ppi):
+    # Calculate mean PPI
+    mean_ppi = sum(ppi) / len(ppi)
+    
+    # Calculate mean HR
+    mean_hr = round(60 * 1000 / mean_ppi, 2)
+    
+    
+    # Calculate RMSSD
+    # Calculate sum of squared differences between consecutive elements in ppi
+    sum_diff_sq = 0
+    for i in range(len(ppi) - 1):
+        diff = ppi[i + 1] - ppi[i]  # Calculate difference between consecutive elements
+        diff_sq = diff ** 2         # Square the difference
+        sum_diff_sq += diff_sq      # Add the squared difference to the sum
+
+    # Calculate Root Mean Square of Successive Differences (RMSSD)
+    rmssd = (sum_diff_sq / (len(ppi) - 1)) ** 0.5
+
+    # Calculate Standard Deviation of NN intervals (SDNN)
+    sdnn = 0
+    for x in ppi:
+        diff = x - mean_ppi          # Calculate difference between each element and the mean
+        diff_sq = diff ** 2          # Square the difference
+        sdnn += diff_sq              # Add the squared difference to the sum
+    sdnn /= len(ppi)                # Calculate mean of squared differences
+    sdnn = sdnn ** 0.5              # Take square root to get standard deviation
+    
+    # Print or return the HRV metrics
+    print("Mean PPI:", mean_ppi)
+    print("Mean HR:", mean_hr)
+    print("RMSSD:", rmssd)
+    print("SDNN:", sdnn)
+    display.fill(0)
+    display.text("Mean PPI: %d" % mean_ppi, 0, 10)
+    display.text("Mean HR: %d" % mean_hr, 0, 20)
+    display.text("RMSSD: %d" % rmssd, 0, 30)
+    display.text("SDNN: %d" % sdnn, 0, 40)
+    display.show()
+    
+    
+#----------------------------------------------------#
+
 
 def init_display():
     i2c = I2C(1, scl=Pin(15), sda=Pin(14), freq=400000)  # Initialize I2C interface
@@ -347,10 +422,10 @@ def update_display(oled, menu):
     oled.show()
 
 
-
 def start():
+    display.fill(0)
     display.text("Welcome", 32, 10)
-    display.text("Press SW1", 26, 20)
+    display.text("Press SW0", 26, 20)
     display.text("to start", 30, 30)
     display.text("the measurement", 5, 40)
     display.show()
@@ -359,70 +434,119 @@ def measurement():
     display.text("Place your", 25, 15)
     display.text("finger on to ", 15, 25)
     display.text("the sensor", 25, 35)
+    display.text("and wait...", 20, 45)
     display.show()
+    
 
 
-def main_menu(user_state):
-    menu_options = ["MEASURE HR", "HRV ANALYSIS", "KUBIOS"]
-    functions = [peak_detector.detect_peaks, logger.warning, logger.error]
-    menu = Menu(menu_options, functions)
-    rot = Encoder(10, 11, 12)
-    oled = init_display()
 
+def HR_logic():
+    global user_state
+    global SW0
+    display.fill(0)
+    measurement()
+    time.sleep_ms(300)
+    display.fill(0)
+    user_state = "bpm"
     while True:
-        if user_state == "menu":
-            update_display(oled, menu)  # Update the display to reflect current selection
-            time.sleep_ms(100)
-        
-        while rot.fifo.has_data() and rot.turning:
-            event = rot.fifo.get()
-            if event == 1:  # Clockwise rotation
-                menu.select_next()
-                print("Selected option:", menu.get_selected_option())  # Add this line
-            elif event == -1:  # Counter-clockwise rotation
-                menu.select_prev()
-                print("Selected option:", menu.get_selected_option())  # Add this line
-            elif event == 0:  # Button press
-                print("Button pressed. Processing event...")  # Add this line
-                selected = menu.get_selected_option()  # Ensure this is running without issues
-                if selected == menu_options[0]:
-                    rot.turning = False
-                    display.fill(0)
-                    measurement()
-                    time.sleep_ms(300)
-                    display.fill(0)
-                    peak_detector.data.measuring = True
-                    user_state = "measuring"
-                    
+        peak_detector.data.measuring = True
         peaks = peak_detector.detect_peaks()
-        if SW1() == 0:
+        if SW0() == 0:
             peak_detector.data.measuring = False
-            rot.turning = True
-            user_state = "menu"
+            print("back")
+            user_state == "menu"
+            display.fill(0)
+            break
+        
+        
+                    
 
+def test_HRV():
+    global user_state
+    global SW0
+    display.fill(0)
+    measurement()
+    time.sleep_ms(300)
+    display.fill(0)
+    user_state = "hrv"
+    while True:
+        peak_detector.data.measuring = True
+        peaks = peak_detector.HRV_logic()
+        if SW0() == 0:
+            peak_detector.data.measuring = False
+            print("back")
+            user_state == "menu"
+            display.fill(0)
+            break
+   
 
-logger = Logger()
-
+def kubious_logic():
+    global user_state
+    global SW0
+    while True:
+        display.text("Kubious Logic", 0, 0)
+        if SW0() == 0:
+            peak_detector.data.measuring = False
+            print("back")
+            user_state == "menu"
+            display.fill(0)
+            break
+    
+    
 sample_rate = 250 
 sampling_interval = 1.0 / sample_rate
 peak_detector = PeakDetector(sample_rate=250, sample_threshold=250)
-
+user_state = "start"
 led = Signal(Pin("LED", Pin.OUT), invert=True)
 i2c = I2C(1, scl=Pin(15), sda=Pin(14), freq=400000)
 display = SSD1306_I2C(128, 64, i2c)
-
 SW0 = Pin(9, Pin.IN, Pin.PULL_UP)
 SW1 = Pin(8, Pin.IN, Pin.PULL_UP)
+    
 
-user_state = "starting_page"
-while True:
-    if user_state == "starting_page":
-        start()
-        if SW1() == 0:
-            print("pressed")
+def main():
+    peak_detector = PeakDetector(sample_rate=250, sample_threshold=250)
+    menu_options = ["Measure HR", "HRV", "Kubious"]
+    functions = [HR_logic, test_HRV, kubious_logic] 
+    menu = Menu(menu_options, functions)
+    global user_state
+    
+    rot = Encoder(10, 11, 12)
+    oled = init_display()
+    
+    while True:
+        if user_state == "start":
+            start()
+            
+        if SW0() == 0 and user_state == "start":
             user_state = "menu"
-            display.fill(0)
-            if user_state == "menu":
-                main_menu(user_state)
-                    
+            
+        if SW0() == 0 and user_state == "bpm":
+            user_state = "menu"
+        
+        if SW0() == 0 and user_state == "hrv":
+            user_state = "menu"
+            
+        if SW0() == 0 and user_state == "kubios":
+            user_state = "menu"
+            
+            
+        if user_state == "menu":
+            update_display(oled, menu)  # Update the display to reflect current selection
+            time.sleep_ms(100)
+            
+        if rot.fifo.has_data():
+            event = rot.fifo.get()
+            if event == 1:
+                menu.select_next()
+            elif event == -1:
+                menu.select_prev()
+            elif event == 0:
+                selected_function = menu.selected_function()
+                selected_function() 
+            update_display(oled, menu)  # Update the display regardless of event
+        time.sleep_ms(100)
+
+if __name__ == "__main__":
+    main()
 
