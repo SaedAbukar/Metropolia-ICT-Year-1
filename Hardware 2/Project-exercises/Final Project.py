@@ -1,10 +1,20 @@
+import network
+from time import sleep
+from umqtt.simple import MQTTClient
 from filefifo import Filefifo
 from fifo import Fifo
 from ssd1306 import SSD1306_I2C
 from machine import Pin, I2C, ADC, Signal
 from piotimer import Piotimer
 import micropython
+from time import sleep
 import time
+import mip
+import urequests as requests
+import ujson
+import network
+from umqtt.simple import MQTTClient
+
 micropython.alloc_emergency_exception_buf(200)
 
 
@@ -182,10 +192,10 @@ class PeakDetector:
             if self.detecting_peaks and filtered_value <= self.threshold_off:
                 self.detecting_peaks = False
             
-            if len(self.peaks) == 15:
+            if len(self.peaks) == 20:
                 if not self.hrv_calculated:
                     ppi = peak_detector.calculate_ppi(self.peaks)
-                    calculate_hrv(ppi)
+                    self.calculate_hrv(ppi)
                     self.hrv_calculated = True
       
       
@@ -274,10 +284,124 @@ class PeakDetector:
             display.text("%d bpm" % bpm, 12, 0)            
         display.show()
         
+            
+    # Function to calculate HRV metrics with Kubios for SNS & PNS
+    def calculate_hrv(self, ppi):
+        try:
+            # Connecton for obtaining Kubios values - do we need to if we already connect before the loop?
+            connect_wlan()
+        except KeyboardInterrupt:
+                    machine.reset()
+                    
+                    
+        try:
+            response = requests.post(
+                url = TOKEN_URL,
+                data = 'grant_type=client_credentials&client_id={}'.format(CLIENT_ID),
+                headers = {'Content-Type':'application/x-www-form-urlencoded'},
+                auth = (CLIENT_ID, CLIENT_SECRET))
+
+            response = response.json() #Parse JSON response into a python dictionary
+            access_token = response["access_token"] #Parse access token
+            
+            peaks = self.detect_peaks()
+            intervals = self.calculate_ppi(peaks)
+            
+            # Dictionary to be sent to Kubios
+            dataset = {
+                "type": "RRI",
+                "data": intervals,
+                "analysis": {"type": "readiness"}
+                }
+
+            
+            response = requests.post(
+                url = "https://analysis.kubioscloud.com/v2/analytics/analyze",
+                headers = { "Authorization": "Bearer {}".format(access_token), 
+                "X-Api-Key": APIKEY},
+                json = dataset)
+
+            response = response.json()
+            
+            sns = round(response['analysis']['sns_index'], 2)
+            pns = round(response['analysis']['pns_index'], 2)
+            
+            
+        except KeyboardInterrupt:
+                    machine.reset()
+
+        # Mean PPI
+        mean_ppi = sum(ppi) / len(ppi)
+        # Mean HR
+        mean_hr = round(60 * 1000 / mean_ppi, 2)
+            
+        # RMSSD calculation
+        sum_diff_sq = 0
+        for i in range(len(ppi) - 1):
+            diff = ppi[i + 1] - ppi[i]
+            diff_sq = diff ** 2         
+            sum_diff_sq += diff_sq      
+
+        rmssd = (sum_diff_sq / (len(ppi) - 1)) ** 0.5
+
+        # SDNN calculation
+        sdnn = 0
+        for x in ppi:
+            diff = x - mean_ppi          
+            diff_sq = diff ** 2          
+            sdnn += diff_sq              
+        sdnn /= len(ppi)                
+        sdnn = sdnn ** 0.5              
+        
+        # Print or return the HRV metrics
+        print("Mean PPI:", mean_ppi)
+        print("Mean HR:", mean_hr)
+        print("RMSSD:", rmssd)
+        print("SDNN:", sdnn)
+        print("SNS:", sns)
+        print("PNs:", pns)
+        display.fill(0)
+        display.text("Mean PPI: %d" % mean_ppi, 0, 0)
+        display.text("Mean HR: %d" % mean_hr, 0, 10)
+        display.text("RMSSD: %d" % rmssd, 0, 20)
+        display.text("SDNN: %d" % sdnn, 0, 30)
+        display.text("SNS: %d" % sns, 0, 40)
+        display.text("PNS: %d" % pns, 0, 50)
+        display.show()
+
+ 
+        
+        try:
+            
+            mqtt_client=connect_mqtt()
+        
+        except Exception as e:
+            print(f"Failed to connect to MQTT: {e}")
+
+        # Send MQTT message
+        try:
+            while True:
+                # Sending a message every 5 seconds.
+                topic = "pico/test"
+                measurement = {
+                    "mean_hr": mean_hr,
+                    "mean_ppi": mean_ppi,
+                    "rmssd": rmssd,
+                    "sdnn": sdnn,
+                    "sns": sns,
+                    "pns": pns
+                    }
+                json_message = ujson.dumps(measurement)
+                mqtt_client.publish(topic, json_message)
+                self.data.measuring = False
+                print(f"Sending to MQTT: {topic} -> {json_message}")
+                sleep(5)
+                
+        except Exception as e:
+            print(f"Failed to send MQTT message: {e}")
 
 
-
-
+        
 class Encoder:
     def __init__(self, rot_a, rot_b, rot_c):
         self.a = Pin(rot_a, mode=Pin.IN, pull=Pin.PULL_UP)
@@ -323,84 +447,6 @@ class Menu:
     def selected_function(self):
         return self.functions[self.selected_index]
     
-
-
-#--------------------------------------------------#
-    # Calculation for HRV analysis
-
-# Mean PPI calculation - (data is the PPI_array)
-def mean_ppi_cal(data):
-    sumPPI = max(data)
-    rounded_PPI = sumPPI/len(data)
-    return int(rounded_PPI)
-
-# Mean HR calculation 
-def mean_hr_cal(meanPPI):
-    rounded_HR = round(60*1000/meanPPI, 0)
-    return int(rounded_HR)
-
-# RMSSD calculation
-def RMSSD_cal(data):
-    i = 0
-    summary = 0
-    while i < len(data)-1:
-        summary += (data[i+1]-data[i])**2
-        i += 1
-    rounded_RMSSD = round((summary/(len(data)-1))**(1/2), 0)
-    return int(rounded_RMSSD)
-
-# SDNN calculation
-def SDNN_cal(data, PPI):
-    summary = 0
-    for i in data:
-        summary += (i-PPI)**2
-    SDNN = (summary/(len(data)-1))**(1/2)
-    rounded_SDNN = round(SDNN, 0)
-    return int(rounded_SDNN)
-
-
-# Function to calculate HRV metrics without statistics module
-def calculate_hrv(ppi):
-    # Calculate mean PPI
-    mean_ppi = sum(ppi) / len(ppi)
-    
-    # Calculate mean HR
-    mean_hr = round(60 * 1000 / mean_ppi, 2)
-    
-    
-    # Calculate RMSSD
-    # Calculate sum of squared differences between consecutive elements in ppi
-    sum_diff_sq = 0
-    for i in range(len(ppi) - 1):
-        diff = ppi[i + 1] - ppi[i]  # Calculate difference between consecutive elements
-        diff_sq = diff ** 2         # Square the difference
-        sum_diff_sq += diff_sq      # Add the squared difference to the sum
-
-    # Calculate Root Mean Square of Successive Differences (RMSSD)
-    rmssd = (sum_diff_sq / (len(ppi) - 1)) ** 0.5
-
-    # Calculate Standard Deviation of NN intervals (SDNN)
-    sdnn = 0
-    for x in ppi:
-        diff = x - mean_ppi          # Calculate difference between each element and the mean
-        diff_sq = diff ** 2          # Square the difference
-        sdnn += diff_sq              # Add the squared difference to the sum
-    sdnn /= len(ppi)                # Calculate mean of squared differences
-    sdnn = sdnn ** 0.5              # Take square root to get standard deviation
-    
-    # Print or return the HRV metrics
-    print("Mean PPI:", mean_ppi)
-    print("Mean HR:", mean_hr)
-    print("RMSSD:", rmssd)
-    print("SDNN:", sdnn)
-    display.fill(0)
-    display.text("Mean PPI: %d" % mean_ppi, 0, 10)
-    display.text("Mean HR: %d" % mean_hr, 0, 20)
-    display.text("RMSSD: %d" % rmssd, 0, 30)
-    display.text("SDNN: %d" % sdnn, 0, 40)
-    display.show()
-    
-    
 #----------------------------------------------------#
 
 
@@ -437,8 +483,13 @@ def measurement():
     display.text("and wait...", 20, 45)
     display.show()
     
-
-
+def kubios_waiting():
+    display.text("Sending", 25, 15)
+    display.text("data to ", 15, 25)
+    display.text("the Kubios", 25, 35)
+    display.text("please wait...", 20, 45)
+    display.show()
+    
 
 def HR_logic():
     global user_state
@@ -483,14 +534,41 @@ def test_HRV():
 def kubious_logic():
     global user_state
     global SW0
+    display.fill(0)
+    kubios_waiting()
+    time.sleep_ms(300)
+    display.fill(0)
+    user_state = "kubios"
     while True:
-        display.text("Kubious Logic", 0, 0)
+        peak_detector.data.measuring = True
+        peaks = peak_detector.HRV_logic()
         if SW0() == 0:
             peak_detector.data.measuring = False
             print("back")
             user_state == "menu"
             display.fill(0)
             break
+        
+#------------------------------------------------------------------------------------------------------------#
+                                # MQTT functions
+                                
+def connect_wlan():
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(SSID, PASSWORD)
+
+    # Attempt to connect once per second
+    while wlan.isconnected() == False:
+        print("Connecting... ")
+        sleep(1)
+
+    print("Connection successful. Pico IP:", wlan.ifconfig()[0])
+    
+def connect_mqtt():
+    mqtt_client = MQTTClient("", MQTT_IP)
+    mqtt_client.connect(clean_session=True)
+    return mqtt_client
+
     
     
 sample_rate = 250 
@@ -502,7 +580,23 @@ i2c = I2C(1, scl=Pin(15), sda=Pin(14), freq=400000)
 display = SSD1306_I2C(128, 64, i2c)
 SW0 = Pin(9, Pin.IN, Pin.PULL_UP)
 SW1 = Pin(8, Pin.IN, Pin.PULL_UP)
-    
+
+# SSID credentials (wifi)
+SSID = 'KMD_757_Group_6'
+PASSWORD = 'KoSaVi_Ankkalinna'
+MQTT_IP = '192.168.6.253'
+MQTT_TOPIC = 'pico/test'
+
+# Kubios credentials
+APIKEY = "pbZRUi49X48I56oL1Lq8y8NDjq6rPfzX3AQeNo3a"
+CLIENT_ID = "3pjgjdmamlj759te85icf0lucv"
+CLIENT_SECRET = "111fqsli1eo7mejcrlffbklvftcnfl4keoadrdv1o45vt9pndlef"
+
+LOGIN_URL = "https://kubioscloud.auth.eu-west-1.amazoncognito.com/login"
+TOKEN_URL = "https://kubioscloud.auth.eu-west-1.amazoncognito.com/oauth2/token"
+REDIRECT_URI = "https://analysis.kubioscloud.com/v1/portal/login"
+
+
 
 def main():
     peak_detector = PeakDetector(sample_rate=250, sample_threshold=250)
@@ -549,4 +643,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
