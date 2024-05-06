@@ -91,6 +91,7 @@ class PeakDetector:
         self.data = isr_adc(26)
         self.tmr = Piotimer(freq=self.sample_rate, callback=self.data.handler)
         self.peaks = []
+        self.ppi = []
         self.avg_peaks = Avg_peaks(5)
         self.hr = Avg_peaks(15)
         self.interval_avg = 0
@@ -127,6 +128,7 @@ class PeakDetector:
         self.threshold_off = self.minimum + (self.maximum - self.minimum) * 0.70
     
     def detect_peaks(self):
+        global user_state
         while self.data.samples.has_data():
             raw_value = self.data.samples.get()  # Get the current data point from ADC
             
@@ -139,7 +141,7 @@ class PeakDetector:
                 # Calculate thresholds after 250 samples
                 self.calculate_thresholds()
                 self.reset()
-                if len(self.peaks) > 10:
+                if len(self.peaks) > 10 and user_state == "bpm":
                     #print(self.peaks)
                     ppi = peak_detector.calculate_ppi(self.peaks)
                     if ppi:
@@ -162,40 +164,15 @@ class PeakDetector:
             if self.detecting_peaks and filtered_value <= self.threshold_off:
                 self.detecting_peaks = False
                 
-                
-    def HRV_logic(self):                        
-        while self.data.samples.has_data():
-            raw_value = self.data.samples.get()
-            filtered_value = self.filtered.lpf_single(raw_value)  
-            self.count += 1
-            self.update_minmax(filtered_value)
-            samplerate = 5000
-            
-            
-            if self.sample_count % self.sample_threshold == 0:
-                # Calculate thresholds after 250 samples
-                self.calculate_thresholds()
-                self.reset()
-        
-            if self.peaks:
-                self.interval_avg = self.peaks_avg(self.peaks)
-                
-            if not self.detecting_peaks and filtered_value >= self.threshold_on and (self.count - self.prev_sample) > 75:
-                if len(self.peaks) >= 10:
-                    if -50 < (self.count - self.prev_sample) - self.interval_avg < 50:
-                        self.detecting_peaks = True
-                        self.peaks.append(self.count)
-                else:   
-                    self.detecting_peaks = True
-                    self.peaks.append(self.count)
-                self.prev_sample = self.count
-            if self.detecting_peaks and filtered_value <= self.threshold_off:
-                self.detecting_peaks = False
-            
-            if len(self.peaks) == 20:
+            if len(self.peaks) == 20 and user_state == "hrv":
                 if not self.hrv_calculated:
                     ppi = peak_detector.calculate_ppi(self.peaks)
                     self.calculate_hrv(ppi)
+                    self.hrv_calculated = True
+            if len(self.peaks) == 30 and user_state == "kubios":
+                if not self.hrv_calculated:
+                    ppi = peak_detector.calculate_ppi(self.peaks)
+                    self.kubios_data(ppi)
                     self.hrv_calculated = True
       
       
@@ -214,7 +191,6 @@ class PeakDetector:
                 
                 
     def calculate_ppi(self, peaks, min_ppi=400, max_ppi=1300):
-        self.ppi = []
         avg_ppi = 0
         for i in range(1, len(self.peaks)):
             self.interval = (self.peaks[i] - self.peaks[i - 1]) * self.sampling_interval_ms
@@ -226,27 +202,6 @@ class PeakDetector:
             
         return self.ppi
 
-    # OLD HR CALCULATOR
-    def calculate_bpm1(self, ppi, sample_rate=250, min_hr=30, max_hr=200):
-        hr = []
-        heart_rate = 60 / (ppi / 1000)  
-        if min_hr <= heart_rate <= max_hr:
-            hr.append(heart_rate) 
-        
-        if not hr:  # If 'hr' is empty, there's no valid heart rate to calculate.
-            return None  
-        
-        hr_sorted = sorted(hr)
-
-        n = len(hr_sorted)
-        if n % 2 == 1:
-            # Odd number of elements: the median is the middle element.
-            current_hr = hr_sorted[n // 2]
-        else:
-            # Even number of elements: the median is the average of the two middle elements.
-            current_hr = (hr_sorted[(n // 2) - 1] + hr_sorted[n // 2]) / 2
-        
-        return int(current_hr)  # Return the median heart rate
     
     # NEW HR CALCULATOR
     def calculate_bpm(self, ppi, sample_rate=250, min_hr=30, max_hr=200):
@@ -262,6 +217,21 @@ class PeakDetector:
         avg_hr = self.hr.average()
         #print(self.hr.data)
         return int(median_hr)  # Return the median heart rate
+    
+    
+    def ppg_signal(self, val, maximum, minimum):
+        last_y = 0
+        
+
+        display.vline(0, 0, 64, 0)
+
+        display.scroll(-1, 0)  
+
+        if maximum - minimum > 0:
+            y = 64 - int(32 * (val - minimum) / (maximum - minimum))
+            display.line(125, last_y, 126, y, 1)
+            last_y = y
+        display.show()
 
     
     def show_bpm(self, bpm, val, maximum, minimum):
@@ -287,13 +257,74 @@ class PeakDetector:
             
     # Function to calculate HRV metrics with Kubios for SNS & PNS
     def calculate_hrv(self, ppi):
+        # Mean PPI
+        mean_ppi = sum(ppi) / len(ppi)
+        # Mean HR
+        mean_hr = round(60 * 1000 / mean_ppi, 2)
+            
+        # RMSSD calculation
+        sum_diff_sq = 0
+        for i in range(len(ppi) - 1):
+            diff = ppi[i + 1] - ppi[i]
+            diff_sq = diff ** 2         
+            sum_diff_sq += diff_sq      
+
+        rmssd = (sum_diff_sq / (len(ppi) - 1)) ** 0.5
+
+        # SDNN calculation
+        sdnn = 0
+        for x in ppi:
+            diff = x - mean_ppi          
+            diff_sq = diff ** 2          
+            sdnn += diff_sq              
+        sdnn /= len(ppi)                
+        sdnn = sdnn ** 0.5              
+        
+        # Print or return the HRV metrics
+        print("Mean PPI:", mean_ppi)
+        print("Mean HR:", mean_hr)
+        print("RMSSD:", rmssd)
+        print("SDNN:", sdnn)
+        display.fill(0)
+        display.text("Mean PPI: %d" % mean_ppi, 0, 0)
+        display.text("Mean HR: %d" % mean_hr, 0, 10)
+        display.text("RMSSD: %d" % rmssd, 0, 20)
+        display.text("SDNN: %d" % sdnn, 0, 30)
+        display.show()
+        self.data.measuring = False
+
+        
         try:
-            # Connecton for obtaining Kubios values - do we need to if we already connect before the loop?
-            connect_wlan()
-        except KeyboardInterrupt:
-                    machine.reset()
-                    
-                    
+            
+            mqtt_client=connect_mqtt()
+        
+        except Exception as e:
+            print(f"Failed to connect to MQTT: {e}")
+
+        # Send MQTT message
+        try:
+
+            # Sending a message every 5 seconds.
+            topic = "pico/test"
+            measurement = {
+                "mean_hr": mean_hr,
+                "mean_ppi": mean_ppi,
+                "rmssd": rmssd,
+                "sdnn": sdnn,
+                }
+            json_message = ujson.dumps(measurement)
+            mqtt_client.publish(topic, json_message)
+            print(f"Sending to MQTT: {topic} -> {json_message}")
+                
+        except Exception as e:
+            print(f"Failed to send MQTT message: {e}")
+            
+        
+        
+        
+    # Function to calculate HRV metrics with Kubios for SNS & PNS
+    def kubios_data(self, ppi):
+        self.data.measuring = False
         try:
             response = requests.post(
                 url = TOKEN_URL,
@@ -303,9 +334,9 @@ class PeakDetector:
 
             response = response.json() #Parse JSON response into a python dictionary
             access_token = response["access_token"] #Parse access token
-            
-            peaks = self.detect_peaks()
-            intervals = self.calculate_ppi(peaks)
+
+            intervals = ppi
+            print(intervals)
             
             # Dictionary to be sent to Kubios
             dataset = {
@@ -322,6 +353,10 @@ class PeakDetector:
                 json = dataset)
 
             response = response.json()
+            print("API Response:", response)
+            
+            if 'error' in response:
+                print("Error in API response:", response['error'])
             
             sns = round(response['analysis']['sns_index'], 2)
             pns = round(response['analysis']['pns_index'], 2)
@@ -369,38 +404,7 @@ class PeakDetector:
         display.text("PNS: %d" % pns, 0, 50)
         display.show()
 
- 
-        
-        try:
             
-            mqtt_client=connect_mqtt()
-        
-        except Exception as e:
-            print(f"Failed to connect to MQTT: {e}")
-
-        # Send MQTT message
-        try:
-            while True:
-                # Sending a message every 5 seconds.
-                topic = "pico/test"
-                measurement = {
-                    "mean_hr": mean_hr,
-                    "mean_ppi": mean_ppi,
-                    "rmssd": rmssd,
-                    "sdnn": sdnn,
-                    "sns": sns,
-                    "pns": pns
-                    }
-                json_message = ujson.dumps(measurement)
-                mqtt_client.publish(topic, json_message)
-                self.data.measuring = False
-                print(f"Sending to MQTT: {topic} -> {json_message}")
-                sleep(5)
-                
-        except Exception as e:
-            print(f"Failed to send MQTT message: {e}")
-
-
         
 class Encoder:
     def __init__(self, rot_a, rot_b, rot_c):
@@ -410,22 +414,25 @@ class Encoder:
         self.fifo = Fifo(30, typecode='i')  # milliseconds
         self.last_pressed_time = 0
         self.button_pressed = False
+        self.active = False
         self.a.irq(handler=self.handler, trigger=Pin.IRQ_RISING, hard=True)
         self.c.irq(handler=self.button, trigger=Pin.IRQ_FALLING, hard=True)
         
     def handler(self, pin):
-        if self.b.value():
-            self.fifo.put(-1)  # Counter-clockwise rotation
-        else:
-            self.fifo.put(1)  # Clockwise rotation
+        if self.active:
+            if self.b.value():
+                self.fifo.put(-1)  # Counter-clockwise rotation
+            else:
+                self.fifo.put(1)  # Clockwise rotation
             
     def button(self, pin):
-        current_time = time.ticks_ms()
-        if current_time - self.last_pressed_time < 200:
-            return
-        self.last_pressed_time = current_time
-        
-        self.fifo.put(0)
+        if self.active:
+            current_time = time.ticks_ms()
+            if current_time - self.last_pressed_time < 200:
+                return
+            self.last_pressed_time = current_time
+            
+            self.fifo.put(0)
        
     
 
@@ -446,6 +453,13 @@ class Menu:
 
     def selected_function(self):
         return self.functions[self.selected_index]
+    
+    def update_options(self, new_options):
+        self.options = new_options
+    
+    def update_functions(self, new_functions):
+        self.functions = new_functions
+
     
 #----------------------------------------------------#
 
@@ -483,27 +497,102 @@ def measurement():
     display.text("and wait...", 20, 45)
     display.show()
     
-def kubios_waiting():
-    display.text("Sending", 25, 15)
-    display.text("data to ", 15, 25)
-    display.text("the Kubios", 25, 35)
-    display.text("please wait...", 20, 45)
+def history_empty():
+    display.text("No history", 25, 5)
+    display.text("available ", 30, 15)
+    display.text("Select Kubios", 15, 25)
+    display.text("and follow", 25, 35)
+    display.text("the instructions", 0, 45)
     display.show()
     
+def kubios_waiting():
+    display.text("Sending", 30, 15)
+    display.text("data to ", 30, 25)
+    display.text("the Kubios", 20, 35)
+    display.text("please wait...", 10, 45)
+    display.show()
+    
+#------------------------------------------------------------------------------------------------------------#
+                                # History - reading the data from text file
+
+# Append the measures to the measurements.txt file on pico board
+def store_measurement(measurement):
+    with open("measurements.txt", "a") as file:
+        file.write(measurement + "\n")
+        
+        
+# Store the measurements from the text file to the measurements list
+def read_measurements():
+    measurements = []
+    file_path = "measurements.txt"
+    if file_path:
+        try:
+            with open(file_path, "r") as file:
+                for line in file:
+                    try:
+                        measurement = json.loads(line.strip())
+                        measurements.append(measurement)
+                    except json.JSONDecodeError:
+                        print(f"Error parsing line: {line.strip()}. Skipping.")
+        except:
+            print("File doesn't exist.")
+            display.fill(0)
+            history_empty()
+            
+
+    return measurements
+
+
+
+# Displaying the data after selected the specific measurement option from history
+def display_measurement_data(oled, measurement):
+    oled.fill(0)  
+    oled.text("Measurement Data:", 0, 0)
+    
+    # Dictionary mapping field names to display names
+    field_display_names = {
+        'mean_hr': 'Mean HR',
+        'mean_ppi': 'Mean PPI',
+        'rmssd': 'RMSSD',
+        'sdnn': 'SDNN',
+        'sns': 'SNS',
+        'pns': 'PNS',
+        'timestamp': 'timestamp'
+    }
+    
+    # Iterate over each field and display its value if available
+    for i, (field, display_name) in enumerate(field_display_names.items()):
+        field_value = measurement.get(field, 'N/A')  # Get the field value or 'N/A' if not available
+        if isinstance(field_value, (int, float)):
+            field_value = round(field_value, 2)  # Round numerical values for display
+        oled.text(f"{display_name}: {field_value}", 0, 10 + i * 10)
+    
+    oled.show()
+    
+    
+    
+def create_display_function(oled, measurement):
+    return lambda: display_measurement_data(oled, measurement)
+ 
 
 def HR_logic():
     global user_state
     global SW0
+    global rot
     display.fill(0)
     measurement()
     time.sleep_ms(300)
     display.fill(0)
     user_state = "bpm"
     while True:
+        rot.active = False
         peak_detector.data.measuring = True
         peaks = peak_detector.detect_peaks()
         if SW0() == 0:
+            rot.active = True
             peak_detector.data.measuring = False
+            peak_detector.peaks.clear()
+            peak_detector.ppi.clear()
             print("back")
             user_state == "menu"
             display.fill(0)
@@ -515,35 +604,75 @@ def HR_logic():
 def test_HRV():
     global user_state
     global SW0
+    global rot
     display.fill(0)
     measurement()
     time.sleep_ms(300)
     display.fill(0)
     user_state = "hrv"
     while True:
+        rot.active = False
         peak_detector.data.measuring = True
-        peaks = peak_detector.HRV_logic()
+        peaks = peak_detector.detect_peaks()
         if SW0() == 0:
+            rot.active = True
             peak_detector.data.measuring = False
+            peak_detector.peaks.clear()
+            peak_detector.ppi.clear()
             print("back")
             user_state == "menu"
             display.fill(0)
             break
-   
+        
+        
+def history_logic():
+    global user_state
+    global SW0
+    global rot
+    user_state = "history"
+    
+    if SW0() == 0:
+        rot.active = True
+        print("back")
+        user_state == "menu"
+        display.fill(0)
+    
+    measurements = read_measurements()
+    measurement_options = []
+
+    for i in range(len(measurements)):
+        option = f"Measurement {i+1}"
+        measurement_options.append(option)
+     
+
+    measurement_data = []
+    for i in range(len(measurements)): 
+        data = create_display_function(oled, measurements[i])
+        measurement_data.append(data)
+         
+#     updated_options = menu.update_options(measurement_options)
+#     update_functions = menu.update_functions(measurement_data)
+
+        
 
 def kubious_logic():
     global user_state
     global SW0
+    global rot
     display.fill(0)
     kubios_waiting()
     time.sleep_ms(300)
     display.fill(0)
     user_state = "kubios"
     while True:
+        rot.active = False
         peak_detector.data.measuring = True
-        peaks = peak_detector.HRV_logic()
+        peaks = peak_detector.detect_peaks()
         if SW0() == 0:
+            rot.active = True
             peak_detector.data.measuring = False
+            peak_detector.peaks.clear()
+            peak_detector.ppi.clear()
             print("back")
             user_state == "menu"
             display.fill(0)
@@ -580,6 +709,10 @@ i2c = I2C(1, scl=Pin(15), sda=Pin(14), freq=400000)
 display = SSD1306_I2C(128, 64, i2c)
 SW0 = Pin(9, Pin.IN, Pin.PULL_UP)
 SW1 = Pin(8, Pin.IN, Pin.PULL_UP)
+rot = Encoder(10, 11, 12)
+menu_options = ["Measure HR", "HRV", "History", "Kubious"]
+functions = [HR_logic, test_HRV, history_logic, kubious_logic] 
+menu = Menu(menu_options, functions)
 
 # SSID credentials (wifi)
 SSID = 'KMD_757_Group_6'
@@ -598,14 +731,15 @@ REDIRECT_URI = "https://analysis.kubioscloud.com/v1/portal/login"
 
 
 
+
 def main():
-    peak_detector = PeakDetector(sample_rate=250, sample_threshold=250)
-    menu_options = ["Measure HR", "HRV", "Kubious"]
-    functions = [HR_logic, test_HRV, kubious_logic] 
-    menu = Menu(menu_options, functions)
+    global peak_detector
+    global menu_options
+    global functions
+    global menu
     global user_state
+    global rot
     
-    rot = Encoder(10, 11, 12)
     oled = init_display()
     
     while True:
@@ -613,12 +747,16 @@ def main():
             start()
             
         if SW0() == 0 and user_state == "start":
+            rot.active = True
             user_state = "menu"
             
         if SW0() == 0 and user_state == "bpm":
             user_state = "menu"
         
         if SW0() == 0 and user_state == "hrv":
+            user_state = "menu"
+            
+        if SW0() == 0 and user_state == "history":
             user_state = "menu"
             
         if SW0() == 0 and user_state == "kubios":
