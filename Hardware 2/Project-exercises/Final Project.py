@@ -9,6 +9,7 @@ from piotimer import Piotimer
 import micropython
 from time import sleep
 import time
+import utime
 import mip
 import urequests as requests
 import ujson
@@ -166,6 +167,7 @@ class PeakDetector:
                 
             if len(self.peaks) == 20 and user_state == "hrv":
                 if not self.hrv_calculated:
+                    print("working")
                     ppi = peak_detector.calculate_ppi(self.peaks)
                     self.calculate_hrv(ppi)
                     self.hrv_calculated = True
@@ -257,6 +259,12 @@ class PeakDetector:
             
     # Function to calculate HRV metrics with Kubios for SNS & PNS
     def calculate_hrv(self, ppi):
+        # Timestamp
+        timestamp = utime.time()
+        time_tuple = utime.localtime(timestamp)
+        iso_format = "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}Z".format(*time_tuple)
+
+
         # Mean PPI
         mean_ppi = sum(ppi) / len(ppi)
         # Mean HR
@@ -278,7 +286,8 @@ class PeakDetector:
             diff_sq = diff ** 2          
             sdnn += diff_sq              
         sdnn /= len(ppi)                
-        sdnn = sdnn ** 0.5              
+        sdnn = sdnn ** 0.5
+        
         
         # Print or return the HRV metrics
         print("Mean PPI:", mean_ppi)
@@ -290,6 +299,7 @@ class PeakDetector:
         display.text("Mean HR: %d" % mean_hr, 0, 10)
         display.text("RMSSD: %d" % rmssd, 0, 20)
         display.text("SDNN: %d" % sdnn, 0, 30)
+        display.text("Timestamp: %s" % iso_format, 0, 40)
         display.show()
         self.data.measuring = False
 
@@ -311,10 +321,17 @@ class PeakDetector:
                 "mean_ppi": mean_ppi,
                 "rmssd": rmssd,
                 "sdnn": sdnn,
+                "timestamp": iso_format
                 }
             json_message = ujson.dumps(measurement)
+            store_measurement(json_message)
+            print("The data has been stored to the measurements.txt file.")
+            
             mqtt_client.publish(topic, json_message)
             print(f"Sending to MQTT: {topic} -> {json_message}")
+            
+            
+        
                 
         except Exception as e:
             print(f"Failed to send MQTT message: {e}")
@@ -357,9 +374,39 @@ class PeakDetector:
             
             if 'error' in response:
                 print("Error in API response:", response['error'])
+                # Put this on OLED if it works
+                print("ERROR SENDING DATA")
+                print("PRESS THE SW0 BUTTON TO RETRY")
+                print("OR WAIT 3 SECONDS TO RETURN TO MAIN MENU")
+                if SW0() == 0:
+                    rot.active = False
+                    peak_detector.data.measuring = False
+                    peaks = peak_detector.detect_peaks()
+                else:
+                    time.sleep(3)
             
             sns = round(response['analysis']['sns_index'], 2)
             pns = round(response['analysis']['pns_index'], 2)
+            timestamp_str = response['analysis']['create_timestamp']
+            # Directly extract components from the timestamp string
+            year = int(timestamp_str[0:4])
+            month = int(timestamp_str[5:7])
+            day = int(timestamp_str[8:10])
+            hour = int(timestamp_str[11:13])
+            minute = int(timestamp_str[14:16])
+            second = int(timestamp_str[17:19])
+
+            # Create the time tuple
+            time_tuple = (year, month, day, hour, minute, second, 0, 0, 0)
+
+            # Get epoch time from the time tuple
+            epoch_time = utime.mktime(time_tuple)
+
+            print("Epoch time:", epoch_time)
+
+            # Recreate ISO 8601 format if needed
+            iso_format = "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}Z".format(year, month, day, hour, minute, second)
+            print("Reformatted ISO 8601 date:", iso_format)
             
             
         except KeyboardInterrupt:
@@ -397,12 +444,29 @@ class PeakDetector:
         print("PNs:", pns)
         display.fill(0)
         display.text("Mean PPI: %d" % mean_ppi, 0, 0)
-        display.text("Mean HR: %d" % mean_hr, 0, 10)
-        display.text("RMSSD: %d" % rmssd, 0, 20)
-        display.text("SDNN: %d" % sdnn, 0, 30)
-        display.text("SNS: %d" % sns, 0, 40)
-        display.text("PNS: %d" % pns, 0, 50)
+        display.text("Mean HR: %d" % mean_hr, 0, 8)
+        display.text("RMSSD: %d" % rmssd, 0, 18)
+        display.text("SDNN: %d" % sdnn, 0, 28)
+        display.text("SNS: %d" % sns, 0, 38)
+        display.text("PNS: %d" % pns, 0, 48)
+        display.text("Timestamp: %s" % iso_format, 0, 58)
         display.show()
+        
+        measurement = {
+                "mean_hr": mean_hr,
+                "mean_ppi": mean_ppi,
+                "rmssd": rmssd,
+                "sdnn": sdnn,
+                "sns": sns,
+                "pns": pns,
+                "timestamp": iso_format
+                }
+        
+        json_message = ujson.dumps(measurement)
+        store_measurement(json_message)
+        print("The data has been stored to the measurements.txt file.")
+
+
 
             
         
@@ -525,55 +589,76 @@ def store_measurement(measurement):
 def read_measurements():
     measurements = []
     file_path = "measurements.txt"
-    if file_path:
-        try:
-            with open(file_path, "r") as file:
-                for line in file:
-                    try:
-                        measurement = json.loads(line.strip())
-                        measurements.append(measurement)
-                    except json.JSONDecodeError:
-                        print(f"Error parsing line: {line.strip()}. Skipping.")
-        except:
-            print("File doesn't exist.")
-            display.fill(0)
-            history_empty()
-            
-
+    
+    try:
+        with open(file_path, "r") as file:
+            for line in file:
+                try:
+                    measurement = ujson.loads(line.strip())
+                    measurements.append(measurement)
+                except Exception as e:
+                    # Log the error or raise an exception
+                    print(f"Error parsing line: {line.strip()}. Skipping.")
+    except Exception as e:
+        # Log the error or raise an exception
+        print(f"Error reading file: {e}")
+    
     return measurements
 
 
 
 # Displaying the data after selected the specific measurement option from history
-def display_measurement_data(oled, measurement):
-    oled.fill(0)  
-    oled.text("Measurement Data:", 0, 0)
+def display_measurement_data(oled, measurement, options, functions):
+    global user_state
+    global SW0
+    global rot
+    oled.fill(0)
+    user_state = "history_data"
     
-    # Dictionary mapping field names to display names
-    field_display_names = {
-        'mean_hr': 'Mean HR',
-        'mean_ppi': 'Mean PPI',
-        'rmssd': 'RMSSD',
-        'sdnn': 'SDNN',
-        'sns': 'SNS',
-        'pns': 'PNS',
-        'timestamp': 'timestamp'
-    }
+    while True:
+        # Dictionary mapping field names to display names
+        field_display_names = {
+            'timestamp': 'timestamp',
+            'mean_hr': 'Mean HR',
+            'mean_ppi': 'Mean PPI',
+            'rmssd': 'RMSSD',
+            'sdnn': 'SDNN',
+            'sns': 'SNS',
+            'pns': 'PNS',
+            
+        }
+        
+        # Iterate over each field and display its value if available
+        for i, (field, display_name) in enumerate(field_display_names.items()):
+            field_value = measurement.get(field, 'N/A')  # Get the field value or 'N/A' if not available
+            if isinstance(field_value, (int, float)):
+                field_value = round(field_value, 2)  # Round numerical values for display
+            oled.text(f"{display_name}: {field_value}", 0, 0 + i * 9)
+        
+        oled.show()
+        
+        
+        # Check wether the code goes back or not when pressing sw0
+        if SW0() == 0 and user_state == "history_data":
+            print("aaaa")
+            rot.active = True
+            user_state == "history"
+            updated_options = menu.update_options(options)
+            update_functions = menu.update_functions(functions)
+            print("back")
+            display.fill(0)
+            break
+        
     
-    # Iterate over each field and display its value if available
-    for i, (field, display_name) in enumerate(field_display_names.items()):
-        field_value = measurement.get(field, 'N/A')  # Get the field value or 'N/A' if not available
-        if isinstance(field_value, (int, float)):
-            field_value = round(field_value, 2)  # Round numerical values for display
-        oled.text(f"{display_name}: {field_value}", 0, 10 + i * 10)
-    
-    oled.show()
     
     
-    
-def create_display_function(oled, measurement):
-    return lambda: display_measurement_data(oled, measurement)
+def create_display_function(oled, measurement, options, functions):
+    return lambda: display_measurement_data(oled, measurement, options, functions)
  
+
+#------------------------------------------------------------------------------------------------------------#
+
+                                    # Functions logic
 
 def HR_logic():
     global user_state
@@ -616,6 +701,7 @@ def test_HRV():
         peaks = peak_detector.detect_peaks()
         if SW0() == 0:
             rot.active = True
+            peak_detector.hrv_calculated = False
             peak_detector.data.measuring = False
             peak_detector.peaks.clear()
             peak_detector.ppi.clear()
@@ -629,17 +715,29 @@ def history_logic():
     global user_state
     global SW0
     global rot
+    global oled
     user_state = "history"
     
-    if SW0() == 0:
+    
+    if SW0 == 0 and user_state == "history_data":
         rot.active = True
+        user_state == "history"
+        updated_options = menu.update_options(measurement_options)
+        update_functions = menu.update_functions(measurement_data)
         print("back")
+        display.fill(0)
+    
+    if SW0 == 0:
+        rot.active = True
         user_state == "menu"
+        updated_options = menu.update_options(menu_options)
+        update_functions = menu.update_functions(functions)
+        print("back")
         display.fill(0)
     
     measurements = read_measurements()
+    
     measurement_options = []
-
     for i in range(len(measurements)):
         option = f"Measurement {i+1}"
         measurement_options.append(option)
@@ -647,11 +745,11 @@ def history_logic():
 
     measurement_data = []
     for i in range(len(measurements)): 
-        data = create_display_function(oled, measurements[i])
+        data = create_display_function(oled, measurements[i], measurement_options, measurement_data)
         measurement_data.append(data)
          
-#     updated_options = menu.update_options(measurement_options)
-#     update_functions = menu.update_functions(measurement_data)
+    updated_options = menu.update_options(measurement_options)
+    update_functions = menu.update_functions(measurement_data)
 
         
 
@@ -670,6 +768,7 @@ def kubious_logic():
         peaks = peak_detector.detect_peaks()
         if SW0() == 0:
             rot.active = True
+            peak_detector.hrv_calculated = False
             peak_detector.data.measuring = False
             peak_detector.peaks.clear()
             peak_detector.ppi.clear()
@@ -713,6 +812,7 @@ rot = Encoder(10, 11, 12)
 menu_options = ["Measure HR", "HRV", "History", "Kubious"]
 functions = [HR_logic, test_HRV, history_logic, kubious_logic] 
 menu = Menu(menu_options, functions)
+oled = init_display()
 
 # SSID credentials (wifi)
 SSID = 'KMD_757_Group_6'
@@ -742,6 +842,8 @@ def main():
     
     oled = init_display()
     
+    connect_wlan()
+    
     while True:
         if user_state == "start":
             start()
@@ -757,11 +859,20 @@ def main():
             user_state = "menu"
             
         if SW0() == 0 and user_state == "history":
+            rot.active = True
+            menu.update_options(menu_options)
+            menu.update_functions(functions)
             user_state = "menu"
+            
             
         if SW0() == 0 and user_state == "kubios":
             user_state = "menu"
-            
+        
+        if SW0() == 0 and user_state == "history_data":
+            rot.active = True
+            menu.update_options(menu_options)
+            menu.update_functions(functions)
+            user_state = "history"
             
         if user_state == "menu":
             update_display(oled, menu)  # Update the display to reflect current selection
@@ -781,3 +892,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
