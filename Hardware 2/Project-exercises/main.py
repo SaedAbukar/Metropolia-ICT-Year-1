@@ -179,6 +179,7 @@ class PeakDetector:
     
     def detect_peaks(self):
         global user_state
+        global display
         while self.data.samples.has_data():
             raw_value = self.data.samples.get()  # Get the current data point from ADC
             
@@ -186,9 +187,7 @@ class PeakDetector:
             filtered_value = self.filtered.lpf_single(raw_value)  # Filter the raw ADC data
             self.count += 1
             self.update_minmax(filtered_value)
-            
-            
-            
+                  
             if self.sample_count % self.sample_threshold == 0:
                 # Calculate thresholds after 250 samples
                 self.calculate_thresholds()
@@ -208,6 +207,7 @@ class PeakDetector:
                 if len(self.peaks) >= 10:
                     if -50 < (self.count - self.prev_sample) - self.interval_avg < 50:
                         self.detecting_peaks = True
+                        led.on()
                         self.peaks.append(self.count)
                 else:   
                     self.detecting_peaks = True
@@ -215,18 +215,27 @@ class PeakDetector:
                 self.prev_sample = self.count
             if self.detecting_peaks and filtered_value <= self.threshold_off:
                 self.detecting_peaks = False
+                led.off()
                 
             if len(self.peaks) == 20 and user_state == "hrv":
                 if not self.hrv_calculated:
                     print("working")
                     ppi = peak_detector.calculate_ppi(self.peaks)
                     self.calculate_hrv(ppi)
+                    led.off()
                     self.hrv_calculated = True
             if len(self.peaks) == 30 and user_state == "kubios":
                 if not self.hrv_calculated:
                     ppi = peak_detector.calculate_ppi(self.peaks)
-                    if len(ppi) > 10:
+                    if len(ppi) > 10:                            
+                        self.data.measuring = False
+                        display.fill(0)
+                        display.text("100% collected", 0, 20)
+                        display.text("Sending to", 20, 30)
+                        display.text("Kubios", 25, 40)
+                        display.show()
                         self.kubios_data(ppi)
+                        led.off()
                     self.hrv_calculated = True
       
       
@@ -347,7 +356,7 @@ class PeakDetector:
         display.text("Mean HR: %d" % mean_hr, 0, 10)
         display.text("RMSSD: %d" % rmssd, 0, 20)
         display.text("SDNN: %d" % sdnn, 0, 30)
-        display.text("Timestamp: %s" % iso_format, 0, 40)
+        display.text("%s" % iso_format, 0, 40)
         display.show()
         self.data.measuring = False
 
@@ -377,10 +386,7 @@ class PeakDetector:
             
             mqtt_client.publish(topic, json_message)
             print(f"Sending to MQTT: {topic} -> {json_message}")
-            
-            
-        
-                
+                           
         except Exception as e:
             print(f"Failed to send MQTT message: {e}")
             
@@ -389,6 +395,7 @@ class PeakDetector:
         
     # Function to calculate HRV metrics with Kubios for SNS & PNS
     def kubios_data(self, ppi):
+        global user_state
         self.data.measuring = False
         try:
             response = requests.post(
@@ -426,96 +433,102 @@ class PeakDetector:
                 print("ERROR SENDING DATA")
                 print("PRESS THE SW0 BUTTON TO RETRY")
                 print("OR WAIT 3 SECONDS TO RETURN TO MAIN MENU")
+                display.fill(0)
+                display.text("ERROR SENDING", 0, 0)
+                display.text("THE DATA", 0, 10)
+                display.text("PRESS THE SW0", 0, 20)
+                display.text("TO RETURN", 0, 30)
+                display.text("TO THE MENU", 0, 40)
+                display.show()
+                #user_state = "menu"
                 if SW0() == 0:
                     rot.active = False
                     peak_detector.data.measuring = False
                     peaks = peak_detector.detect_peaks()
                 else:
                     time.sleep(3)
+                    
+            if not 'error' in response:
+                sns = round(response['analysis']['sns_index'], 2)
+                pns = round(response['analysis']['pns_index'], 2)
+                timestamp_str = response['analysis']['create_timestamp']
+                # Directly extract components from the timestamp string
+                year = int(timestamp_str[0:4])
+                month = int(timestamp_str[5:7])
+                day = int(timestamp_str[8:10])
+                hour = int(timestamp_str[11:13])
+                minute = int(timestamp_str[14:16])
+                second = int(timestamp_str[17:19])
+
+                # Create the time tuple
+                time_tuple = (year, month, day, hour, minute, second, 0, 0, 0)
+
+                # Get epoch time from the time tuple
+                epoch_time = utime.mktime(time_tuple)
+
+                print("Epoch time:", epoch_time)
+
+                # Recreate ISO 8601 format if needed
+                iso_format = "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}Z".format(year, month, day, hour, minute, second)
+                print("Reformatted ISO 8601 date:", iso_format)
+                
+                # Mean PPI
+                mean_ppi = sum(ppi) / len(ppi)
+                # Mean HR
+                mean_hr = round(60 * 1000 / mean_ppi, 2)
+                    
+                # RMSSD calculation
+                sum_diff_sq = 0
+                for i in range(len(ppi) - 1):
+                    diff = ppi[i + 1] - ppi[i]
+                    diff_sq = diff ** 2         
+                    sum_diff_sq += diff_sq      
+
+                rmssd = (sum_diff_sq / (len(ppi) - 1)) ** 0.5
+
+                # SDNN calculation
+                sdnn = 0
+                for x in ppi:
+                    diff = x - mean_ppi          
+                    diff_sq = diff ** 2          
+                    sdnn += diff_sq              
+                sdnn /= len(ppi)                
+                sdnn = sdnn ** 0.5              
+                
+                # Print or return the HRV metrics
+                print("Mean PPI:", mean_ppi)
+                print("Mean HR:", mean_hr)
+                print("RMSSD:", rmssd)
+                print("SDNN:", sdnn)
+                print("SNS:", sns)
+                print("PNs:", pns)
+                display.fill(0)
+                display.text("Mean PPI: %d" % mean_ppi, 0, 0)
+                display.text("Mean HR: %d" % mean_hr, 0, 8)
+                display.text("RMSSD: %d" % rmssd, 0, 18)
+                display.text("SDNN: %d" % sdnn, 0, 28)
+                display.text("SNS: %d" % sns, 0, 38)
+                display.text("PNS: %d" % pns, 0, 48)
+                display.text("%s" % iso_format, 0, 58)
+                display.show()
+                
+                measurement = {
+                        "mean_hr": mean_hr,
+                        "mean_ppi": mean_ppi,
+                        "rmssd": rmssd,
+                        "sdnn": sdnn,
+                        "sns": sns,
+                        "pns": pns,
+                        ":": iso_format
+                        }
+                
+                json_message = ujson.dumps(measurement)
+                store_measurement(json_message)
+                print("The data has been stored to the measurements.txt file.")
             
-            sns = round(response['analysis']['sns_index'], 2)
-            pns = round(response['analysis']['pns_index'], 2)
-            timestamp_str = response['analysis']['create_timestamp']
-            # Directly extract components from the timestamp string
-            year = int(timestamp_str[0:4])
-            month = int(timestamp_str[5:7])
-            day = int(timestamp_str[8:10])
-            hour = int(timestamp_str[11:13])
-            minute = int(timestamp_str[14:16])
-            second = int(timestamp_str[17:19])
-
-            # Create the time tuple
-            time_tuple = (year, month, day, hour, minute, second, 0, 0, 0)
-
-            # Get epoch time from the time tuple
-            epoch_time = utime.mktime(time_tuple)
-
-            print("Epoch time:", epoch_time)
-
-            # Recreate ISO 8601 format if needed
-            iso_format = "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}Z".format(year, month, day, hour, minute, second)
-            print("Reformatted ISO 8601 date:", iso_format)
             
-            
-        except KeyboardInterrupt:
-                    machine.reset()
-
-        # Mean PPI
-        mean_ppi = sum(ppi) / len(ppi)
-        # Mean HR
-        mean_hr = round(60 * 1000 / mean_ppi, 2)
-            
-        # RMSSD calculation
-        sum_diff_sq = 0
-        for i in range(len(ppi) - 1):
-            diff = ppi[i + 1] - ppi[i]
-            diff_sq = diff ** 2         
-            sum_diff_sq += diff_sq      
-
-        rmssd = (sum_diff_sq / (len(ppi) - 1)) ** 0.5
-
-        # SDNN calculation
-        sdnn = 0
-        for x in ppi:
-            diff = x - mean_ppi          
-            diff_sq = diff ** 2          
-            sdnn += diff_sq              
-        sdnn /= len(ppi)                
-        sdnn = sdnn ** 0.5              
-        
-        # Print or return the HRV metrics
-        print("Mean PPI:", mean_ppi)
-        print("Mean HR:", mean_hr)
-        print("RMSSD:", rmssd)
-        print("SDNN:", sdnn)
-        print("SNS:", sns)
-        print("PNs:", pns)
-        display.fill(0)
-        display.text("Mean PPI: %d" % mean_ppi, 0, 0)
-        display.text("Mean HR: %d" % mean_hr, 0, 8)
-        display.text("RMSSD: %d" % rmssd, 0, 18)
-        display.text("SDNN: %d" % sdnn, 0, 28)
-        display.text("SNS: %d" % sns, 0, 38)
-        display.text("PNS: %d" % pns, 0, 48)
-        display.text("Timestamp: %s" % iso_format, 0, 58)
-        display.show()
-        
-        measurement = {
-                "mean_hr": mean_hr,
-                "mean_ppi": mean_ppi,
-                "rmssd": rmssd,
-                "sdnn": sdnn,
-                "sns": sns,
-                "pns": pns,
-                "timestamp": iso_format
-                }
-        
-        json_message = ujson.dumps(measurement)
-        store_measurement(json_message)
-        print("The data has been stored to the measurements.txt file.")
-
-
-
+        except:
+            user_state = "menu"
             
         
 class Encoder:
@@ -618,10 +631,9 @@ def history_empty():
     display.show()
     
 def kubios_waiting():
-    display.text("Sending", 30, 15)
-    display.text("data to ", 30, 25)
-    display.text("the Kubios", 20, 35)
-    display.text("please wait...", 10, 45)
+    display.text("Collecting", 30, 15)
+    display.text("  data", 30, 25)
+    display.text("please wait...", 10, 35)
     display.show()
     
 #------------------------------------------------------------------------------------------------------------#
@@ -629,8 +641,27 @@ def kubios_waiting():
 
 # Append the measures to the measurements.txt file on pico board
 def store_measurement(measurement):
-    with open("measurements.txt", "a") as file:
-        file.write(measurement + "\n")
+    file_path = "measurements.txt"
+    
+    # Read existing measurements from the file
+    try:
+        with open(file_path, "r") as file:
+            lines = file.readlines()
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        lines = []
+    
+    # Add the new measurement and keep only the latest 4 measurements
+    lines.append(measurement + "\n")
+    lines = lines[-4:]
+    
+    # Write the updated measurements back to the file
+    try:
+        with open(file_path, "w") as file:
+            for line in lines:
+                file.write(line)
+    except Exception as e:
+        print(f"Error writing file: {e}")
         
         
 # Store the measurements from the text file to the measurements list
@@ -666,7 +697,7 @@ def display_measurement_data(oled, measurement, options, functions):
     while True:
         # Dictionary mapping field names to display names
         field_display_names = {
-            'timestamp': 'timestamp',
+            ':': 'timestamp',
             'mean_hr': 'Mean HR',
             'mean_ppi': 'Mean PPI',
             'rmssd': 'RMSSD',
@@ -712,6 +743,7 @@ def HR_logic():
     global user_state
     global SW0
     global rot
+    global led
     display.fill(0)
     measurement()
     time.sleep_ms(300)
@@ -726,6 +758,7 @@ def HR_logic():
             peak_detector.data.measuring = False
             peak_detector.peaks.clear()
             peak_detector.ppi.clear()
+            led.off()
             print("back")
             user_state == "menu"
             display.fill(0)
@@ -738,6 +771,7 @@ def test_HRV():
     global user_state
     global SW0
     global rot
+    global led
     display.fill(0)
     measurement()
     time.sleep_ms(300)
@@ -753,6 +787,7 @@ def test_HRV():
             peak_detector.data.measuring = False
             peak_detector.peaks.clear()
             peak_detector.ppi.clear()
+            led.off()
             print("back")
             user_state == "menu"
             display.fill(0)
@@ -805,6 +840,7 @@ def kubious_logic():
     global user_state
     global SW0
     global rot
+    global led
     display.fill(0)
     kubios_waiting()
     time.sleep_ms(300)
@@ -820,6 +856,7 @@ def kubious_logic():
             peak_detector.data.measuring = False
             peak_detector.peaks.clear()
             peak_detector.ppi.clear()
+            led.off()
             print("back")
             user_state == "menu"
             display.fill(0)
@@ -829,16 +866,42 @@ def kubious_logic():
                                 # MQTT functions
                                 
 def connect_wlan():
+    global display
+    global connected
+    global led
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
     wlan.connect(SSID, PASSWORD)
 
     # Attempt to connect once per second
     while wlan.isconnected() == False:
+        display.text("Connecting", 30, 25)
+        display.text("to WiFi...", 30, 35)
+        display.show()
+        led.on()
         print("Connecting... ")
         sleep(1)
+        led.off()
 
-    print("Connection successful. Pico IP:", wlan.ifconfig()[0])
+    if wlan.isconnected():
+        connected == True
+        print("Connection successful. Pico IP:", wlan.ifconfig()[0])
+        display.fill(0)
+        display.text("Connected", 30, 25)
+        display.text("to WiFi!", 35, 35)
+        display.show()
+        time.sleep(2)
+    else:
+        connected == False
+        display.fill(0)
+        display.text("Connection", 30, 15)
+        display.text("to WiFi", 35, 25)
+        display.text("Unsuccessful", 30, 35)
+        display.text("Kubios option", 30, 45)
+        display.text("Not available", 30, 55)
+        display.show()
+        time.sleep(2)
+        
     
 def connect_mqtt():
     mqtt_client = MQTTClient("", MQTT_IP)
@@ -857,10 +920,18 @@ display = SSD1306_I2C(128, 64, i2c)
 SW0 = Pin(9, Pin.IN, Pin.PULL_UP)
 SW1 = Pin(8, Pin.IN, Pin.PULL_UP)
 rot = Encoder(10, 11, 12)
-menu_options = ["Measure HR", "HRV", "History", "Kubious"]
-functions = [HR_logic, test_HRV, history_logic, kubious_logic] 
-menu = Menu(menu_options, functions)
 oled = init_display()
+connected = True
+
+if connected == True:
+    menu_options = ["Measure HR", "HRV", "History", "Kubious"]
+    functions = [HR_logic, test_HRV, history_logic, kubious_logic]
+    menu = Menu(menu_options, functions)
+    
+if connected == False:
+    menu_options = ["Measure HR", "HRV", "History"]
+    functions = [HR_logic, test_HRV, history_logic]
+    menu = Menu(menu_options, functions)
 
 # SSID credentials (wifi)
 SSID = 'KMD_757_Group_6'
@@ -887,12 +958,15 @@ def main():
     global menu
     global user_state
     global rot
+    global led
     
+    led.off()
     oled = init_display()
     
     connect_wlan()
     
     while True:
+        led.off()
         if user_state == "start":
             start()
             
@@ -902,19 +976,23 @@ def main():
             
         if SW0() == 0 and user_state == "bpm":
             user_state = "menu"
+            led.off()
         
         if SW0() == 0 and user_state == "hrv":
             user_state = "menu"
+            led.off()
             
         if SW0() == 0 and user_state == "history":
             rot.active = True
             menu.update_options(menu_options)
             menu.update_functions(functions)
             user_state = "menu"
+            led.off()
             
             
         if SW0() == 0 and user_state == "kubios":
             user_state = "menu"
+            led.off()
         
         if SW0() == 0 and user_state == "history_data":
             rot.active = True
@@ -940,5 +1018,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
