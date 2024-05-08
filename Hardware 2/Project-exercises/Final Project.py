@@ -83,6 +83,50 @@ class Avg_peaks:
             return (sorted_data[(n // 2) - 1] + sorted_data[n // 2]) / 2
 
 
+class CircularBuffer:
+    def __init__(self, max_size):
+        self.max_size = max_size
+        self.buffer = [None] * max_size
+        self.start = 0
+        self.end = 0
+        self.size = 0
+    
+    def add(self, item):
+        self.buffer[self.end] = item
+        self.end = (self.end + 1) % self.max_size
+        if self.size < self.max_size:
+            self.size += 1
+        else:
+            self.start = (self.start + 1) % self.max_size
+    
+    def get(self, index):
+        if index < 0:
+            index = self.size + index  # Adjust negative index to point to the right element
+        if index < 0 or index >= self.size:
+            raise IndexError("Index out of bounds")
+        return self.buffer[(self.start + index) % self.max_size]
+    
+    def __getitem__(self, index):
+        return self.get(index)
+    
+    def __len__(self):
+        return self.size
+    
+    def __iter__(self):
+        for i in range(self.size):
+            yield self.get(i)
+
+    def __repr__(self):
+        return "[" + ", ".join(str(self.get(i)) for i in range(self.size)) + "]"
+    
+    def clear(self):
+        self.buffer = [None] * self.max_size
+        self.start = 0
+        self.end = 0
+        self.size = 0
+
+
+
 class PeakDetector:
     def __init__(self, sample_rate=250, sample_threshold=250):
         self.sample_rate = sample_rate
@@ -92,7 +136,7 @@ class PeakDetector:
         self.data = isr_adc(26)
         self.tmr = Piotimer(freq=self.sample_rate, callback=self.data.handler)
         self.peaks = []
-        self.ppi = []
+        self.ppi = CircularBuffer(15)
         self.avg_peaks = Avg_peaks(5)
         self.hr = Avg_peaks(15)
         self.interval_avg = 0
@@ -127,6 +171,11 @@ class PeakDetector:
         """Calculate on/off thresholds based on minimum and maximum."""
         self.threshold_on = self.minimum + (self.maximum - self.minimum) * 0.75
         self.threshold_off = self.minimum + (self.maximum - self.minimum) * 0.70
+        
+    def scale_data(self, data, min_val, max_val):
+        scaled_data = ((data - min_val) / (max_val - min_val)) * 40
+        return max(0, min(int(scaled_data), 40))
+    
     
     def detect_peaks(self):
         global user_state
@@ -137,6 +186,8 @@ class PeakDetector:
             filtered_value = self.filtered.lpf_single(raw_value)  # Filter the raw ADC data
             self.count += 1
             self.update_minmax(filtered_value)
+            
+            
             
             if self.sample_count % self.sample_threshold == 0:
                 # Calculate thresholds after 250 samples
@@ -174,7 +225,8 @@ class PeakDetector:
             if len(self.peaks) == 30 and user_state == "kubios":
                 if not self.hrv_calculated:
                     ppi = peak_detector.calculate_ppi(self.peaks)
-                    self.kubios_data(ppi)
+                    if len(ppi) > 10:
+                        self.kubios_data(ppi)
                     self.hrv_calculated = True
       
       
@@ -193,14 +245,10 @@ class PeakDetector:
                 
                 
     def calculate_ppi(self, peaks, min_ppi=400, max_ppi=1300):
-        avg_ppi = 0
         for i in range(1, len(self.peaks)):
             self.interval = (self.peaks[i] - self.peaks[i - 1]) * self.sampling_interval_ms
             if min_ppi < self.interval < max_ppi:
-                self.ppi.append(self.interval)
-        
-        if len(self.ppi) > 1:
-            avg_ppi = int(sum(self.ppi) / len(self.ppi))
+                self.ppi.add(self.interval)
             
         return self.ppi
 
