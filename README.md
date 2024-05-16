@@ -24,3 +24,8 @@ Health Tech: HRV analysis using python.
 
 Math: Matrices
 
+
+#### Hardware 2
+Project exercises: Preperation for the courses project. Getting familiar with the protoboard ans the Raspberry Pi Pico W.
+
+main.py: Stand alone heartrate monitor with a local and Kubios HRV analysis. Also with a WiFi and MQTT connections. 
