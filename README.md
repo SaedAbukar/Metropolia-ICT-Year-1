@@ -1,5 +1,5 @@
 # Metropolia ICT Year 1
-This Git repository is for Metropolia year 1's excercises and projects. There are four parts. Ohjelmisto 1, Ohjelmisto 2, Laitteisto 1 and Laitteisto 2.
+This Git repository is for Metropolia year 1's excercises and projects. There are four parts. Programming 1, Programming 2, Hardware 1 and Hardware 2.
 
 #### Programming 1
 Backend stuff. Python and MariaDB.
